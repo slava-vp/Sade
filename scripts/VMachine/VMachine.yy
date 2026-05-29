@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"VMachine",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"VMachine",
+  "parent":{
+    "name":"S-lang",
+    "path":"folders/S-lang.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

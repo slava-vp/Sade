@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"setup",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"setup",
+  "parent":{
+    "name":"S-lang",
+    "path":"folders/S-lang.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
