@@ -111,9 +111,30 @@ function parser(_tokens){
 				return;
 			
 			case tokenID.Variable:
-				array_push(bytecode, [opCode.LOAD, get_token_val()])
+				//array_push(bytecode, [opCode.LOAD, get_token_val()])
+				//
+				//next();
+				
+				var _name = get_token_val();
+				
+				array_push(bytecode, [opCode.LOAD, _name]);
 				
 				next();
+				
+				if (get_token_val() == "++" || get_token_val() == "--"){
+					var _op = get_token_val();
+					next();
+					
+					array_push(bytecode, [opCode.LOAD, _name]);
+					array_push(bytecode, [opCode.PUSH, 1]);
+					
+					if (_op == "++")
+						array_push(bytecode, [opCode.ADD]);
+					else
+						array_push(bytecode, [opCode.SUB]);
+					
+					array_push(bytecode, [opCode.STORE, _name]);
+				}
 				
 				return;
 			
@@ -123,6 +144,11 @@ function parser(_tokens){
 				}else{
 					parse_user_call();
 				}
+				
+				return;
+			
+			case tokenID.Unar:
+				parse_prefix_idec();
 				
 				return;
 		}
@@ -399,9 +425,91 @@ function parser(_tokens){
 		
 		next();
 		
-		parse_expression();
+		//parse_expression();
 		
-		array_push(bytecode, [opCode.STORE, _name]);
+		var _op = get_token_val();
+		
+		switch(_op){
+			case "+=":
+				next();
+				
+				array_push(bytecode, [opCode.LOAD, _name]);
+				
+				parse_expression();
+				
+				array_push(bytecode, [opCode.ADD]);
+				
+				array_push(bytecode, [opCode.STORE, _name]);
+				
+				break;
+			
+			case "-=":
+				next();
+				
+				array_push(bytecode, [opCode.LOAD, _name]);
+				
+				parse_expression();
+				
+				array_push(bytecode, [opCode.SUB]);
+				
+				array_push(bytecode, [opCode.STORE, _name]);
+				
+				break;
+			
+			case "*=":
+				next();
+				
+				array_push(bytecode, [opCode.LOAD, _name]);
+				
+				parse_expression();
+				
+				array_push(bytecode, [opCode.MUL]);
+				
+				array_push(bytecode, [opCode.STORE, _name]);
+				
+				break;
+			
+			case "/=":
+				next();
+				
+				array_push(bytecode, [opCode.LOAD, _name]);
+				
+				parse_expression();
+				
+				array_push(bytecode, [opCode.DIV]);
+				
+				array_push(bytecode, [opCode.STORE, _name]);
+				
+				break;
+			
+			case "//=":
+				next();
+				
+				array_push(bytecode, [opCode.LOAD, _name]);
+				
+				parse_expression();
+				
+				array_push(bytecode, [opCode.IDIV]);
+				
+				array_push(bytecode, [opCode.STORE, _name]);
+				
+				break;
+			
+			case "^=":
+				next();
+				
+				array_push(bytecode, [opCode.LOAD, _name]);
+				
+				parse_expression();
+				
+				array_push(bytecode, [opCode.POW]);
+				
+				array_push(bytecode, [opCode.STORE, _name]);
+				
+				break;
+		}
+		
+		//array_push(bytecode, [opCode.STORE, _name]);
 	}
 	
 	parse_statement = function(){
@@ -440,10 +548,67 @@ function parser(_tokens){
 				break;
 			
 			case tokenID.Variable:
+				if (curr + 1 < len){
+					var _next_val = tokens[curr + 1][$ "val"];
+					
+					if (_next_val == "++" || _next_val == "--"){
+						parse_postfix_idec();
+						break;
+					}
+				}
 				parse_assignment();
 				
 				break;
+			
+			case tokenID.Unar:
+				if (_val == "++" || _val == "--")
+					parse_prefix_idec();
+				
+				break;
 		}
+	}
+	
+	parse_prefix_idec = function(){
+		var _op = get_token_val();
+		
+		next();
+		
+		var _name = get_token_val();
+		
+		next();
+		
+		array_push(bytecode, [opCode.LOAD, _name]);
+		array_push(bytecode, [opCode.PUSH, 1]);
+		
+		if (_op == "++")
+			array_push(bytecode, [opCode.ADD]);
+		else
+			array_push(bytecode, [opCode.SUB]);
+		
+		array_push(bytecode, [opCode.STORE, _name]);
+		array_push(bytecode, [opCode.LOAD, _name]);
+	}
+	
+	parse_postfix_idec = function(){
+		var _name = get_token_val();
+		
+		next();
+		
+		var _op = get_token_val();
+		
+		next();
+		
+		array_push(bytecode, [opCode.LOAD, _name]);
+		
+		array_push(bytecode, [opCode.LOAD, _name]);
+		array_push(bytecode, [opCode.PUSH, 1]);
+		
+		if (_op == "++")
+			array_push(bytecode, [opCode.ADD]);
+		else
+			array_push(bytecode, [opCode.SUB]);
+		
+		array_push(bytecode, [opCode.STORE, _name]);
 	}
 	
 	while(curr < len){

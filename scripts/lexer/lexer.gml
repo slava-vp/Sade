@@ -70,21 +70,21 @@ function lexer(_str){
 		
 		_tokens = [];
 		
-		get_next_token = function(){
-			if (curr + 1 >= _len){
+		get_next_token = function(_nt = 1){
+			if (curr + _nt >= _len){
 				lexer_error("undefined next token");
 				return "";
 			}
 			
-			return _words[curr + 1];
+			return _words[curr + _nt];
 		}
-		get_prev_token = function(){
-			if (curr - 1 < 0){
+		get_prev_token = function(_nt = 1){
+			if (curr - _nt < 0){
 				lexer_error("undefined prev token");
 				return "";
 			}
 			
-			return _words[curr - 1];
+			return _words[curr - _nt];
 		}
 		
 		var _token_id;
@@ -200,6 +200,13 @@ function lexer(_str){
 						array_delete(_words, curr + 1, -1);
 						_len--;
 					}else
+					if (_nt == "-"){
+						_token_id = tokenID.Unar;
+						_token_value = "--";
+						
+						array_delete(_words, curr + 1, -1);
+						_len--;
+					}else
 					if (!token_is(_pt, global.Operator) && token_is_variable(_nt)){
 						_token_id = tokenID.Unar;
 					}
@@ -212,6 +219,14 @@ function lexer(_str){
 					if (_nt == "="){
 						_token_id = tokenID.Binary;
 						_token_value = "+=";
+						
+						array_delete(_words, curr + 1, -1);
+						_len--;
+					}
+					
+					if (_nt == "+"){
+						_token_id = tokenID.Unar;
+						_token_value = "++";
 						
 						array_delete(_words, curr + 1, -1);
 						_len--;
@@ -295,6 +310,19 @@ function lexer(_str){
 					if (_nt == "="){
 						_token_id = tokenID.Binary;
 						_token_value = "/=";
+						
+						array_delete(_words, curr + 1, -1);
+						_len--;
+					}
+					
+					if (_nt == "/"){
+						_token_id = tokenID.Comment;
+						_token_value = "//";
+						
+						if (get_next_token(2) == "="){
+							_token_id = tokenID.Operator;
+							_token_value = "//=";
+						}
 						
 						array_delete(_words, curr + 1, -1);
 						_len--;

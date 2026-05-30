@@ -233,13 +233,10 @@ function VMachine(_bytecode){
 			case opCode.MUL:
 				var b_raw = array_pop(stack);
 				var a_raw = array_pop(stack);
-				//show_message(b_raw);
-				//show_message(a_raw);
 				
 				var b = get_value(b_raw);
 				var a = get_value(a_raw);
-				//show_message(b);
-				//show_message(a);
+				
 				array_push(stack, a * b);
 				
 				break;
@@ -252,6 +249,17 @@ function VMachine(_bytecode){
 				var a = get_value(a_raw);
 				
 				array_push(stack, a / b);
+				
+				break;
+			
+			case opCode.IDIV:
+				var b_raw = array_pop(stack);
+				var a_raw = array_pop(stack);
+				
+				var b = get_value(b_raw);
+				var a = get_value(a_raw);
+				
+				array_push(stack, a div b);
 				
 				break;
 			

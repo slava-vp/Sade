@@ -17,6 +17,7 @@ enum opCode{
 	SUB             ,   // -
 	MUL             ,   // *
 	DIV             ,   // /
+	IDIV            ,   // //=
 	POW             ,   // ^
 	
 	HALT            ,   // stop VMachine

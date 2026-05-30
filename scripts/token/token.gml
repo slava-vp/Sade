@@ -13,6 +13,8 @@ enum tokenID{
 	Binary			,	// for +=, *=, -=, /=, ^=
 	Operator		,	// for ==, <=, >=, !=, >>, <<
 	
+	Comment			,	// //
+	
 	Rbracket_L		,	// (
 	Rbracket_R		,	// )
 	Bracket_L		,	// {
