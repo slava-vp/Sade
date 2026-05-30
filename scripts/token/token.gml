@@ -9,9 +9,9 @@ enum tokenID{
 	Value			,
 	Variable		,
 	
-	Unar			,	// для !var, -var, var++, var--, ++var, --var
-	Binary			,	// для +=, *=, -=, /=, ^=
-	Operator		,	// для ==, <=, >=, !=, >>, <<
+	Unar			,	// for !var, -var, var++, var--, ++var, --var
+	Binary			,	// for +=, *=, -=, /=, ^=
+	Operator		,	// for ==, <=, >=, !=, >>, <<
 	
 	Rbracket_L		,	// (
 	Rbracket_R		,	// )

@@ -81,7 +81,7 @@ function parser(_tokens){
 		var _arg_count = 0;
 		
 		if (get_token_val() != ")")
-			while(true){
+			while(curr < len){
 				parse_expression();
 				
 				_arg_count++;
@@ -100,21 +100,22 @@ function parser(_tokens){
 		array_push(bytecode, [opCode.EXECUTE, _func_name, _arg_count]);
 	}
 	
-	parse_expression = function(){
+	parse_primary = function(){
+		
 		switch(get_token_id()){
 			case tokenID.Value:
 				array_push(bytecode, [opCode.PUSH, get_token_val()]);
 				
 				next();
 				
-				break;
+				return;
 			
 			case tokenID.Variable:
 				array_push(bytecode, [opCode.LOAD, get_token_val()])
 				
 				next();
 				
-				break;
+				return;
 			
 			case tokenID.Function:
 				if (token_is(get_token_val(), global.Functions)){
@@ -123,7 +124,7 @@ function parser(_tokens){
 					parse_user_call();
 				}
 				
-				break;
+				return;
 		}
 		
 		switch(get_token_val()){
@@ -142,13 +143,128 @@ function parser(_tokens){
 			case "-":
 				next();
 				
-				parse_expression();
+				parse_primary();
 				
 				array_push(bytecode, [opCode.PUSH, -1]);
 				array_push(bytecode, [opCode.MUL]);
 				
 				break;
+			
+			case "+":
+				next();
+				
+				parse_primary();
+				break;
+			
+			case "!":
+				next();
+				
+				parse_primary();
+				
+				array_push(bytecode, [opCode.PUSH, false]);
+				array_push(bytecode, [opCode.COMPARE, "=="]);
+				
+				break;
 		}
+	}
+	
+	parse_multiplication = function(){
+		parse_primary();
+		
+		while(true){
+			var _val = get_token_val()
+			
+			if (_val == undefined) break;
+			
+			switch(_val){
+				case "*":
+					next();
+					
+					parse_primary();
+					
+					array_push(bytecode, [opCode.MUL]);
+					
+					break;
+					
+				case "/":
+					next();
+					
+					parse_primary();
+					
+					array_push(bytecode, [opCode.DIV]);
+					
+					break;
+					
+				case "^":
+					next();
+					
+					parse_primary();
+					
+					array_push(bytecode, [opCode.POW]);
+					
+					break;
+				
+				default:
+					return false;
+			}
+		}
+	}
+	
+	parse_addition = function(){
+		parse_multiplication();
+		
+		while(curr < len){
+			var _val = get_token_val();
+			
+			if (_val == undefined) break;
+			
+			switch(_val){
+				case "+":
+					next();
+					
+					parse_multiplication();
+					
+					array_push(bytecode, [opCode.ADD]);
+					
+					break;
+					
+				case "-":
+					next();
+					
+					parse_multiplication();
+					
+					array_push(bytecode, [opCode.SUB]);
+					
+					break;
+				
+				default:
+					return false;
+			}
+		}
+	}
+	
+	parse_comparison = function(){
+		parse_addition();
+		
+		while(curr < len){
+			var _id = get_token_id();
+			var _val = get_token_val();
+			
+			if (_val == undefined) break;
+			
+			if (_id == tokenID.Operator){
+				next();
+				
+				parse_addition();
+				
+				array_push(bytecode, [opCode.COMPARE, _val]);
+			}else
+				break;
+		}
+	}
+	
+	parse_expression = function(){
+		parse_comparison();
 	}
 	
 	parse_func = function(){
@@ -166,7 +282,7 @@ function parser(_tokens){
 		var _params = [];
 		
 		if (get_token_val() != ")")
-			while(true){
+			while(curr < len){
 				array_push(_params, get_token_val());
 				next();
 				
@@ -222,7 +338,7 @@ function parser(_tokens){
 		var _args_count = 0;
 		
 		if (get_token_val() != ")")
-			while(true){
+			while(curr < len){
 				parse_expression();
 				_args_count++;
 				
@@ -323,7 +439,10 @@ function parser(_tokens){
 				
 				break;
 			
-			
+			case tokenID.Variable:
+				parse_assignment();
+				
+				break;
 		}
 	}
 	
