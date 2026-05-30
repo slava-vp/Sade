@@ -54,7 +54,7 @@ function lexer(_str){
 	
 	
 	str = _str;
-	var _spaces = ["|", "(", ")", "{", "}", "[", "]", ";", ":", "\"", "\'", ",", ".", "<", ">", "/", "\\", "?", "!", "@", "#", "$", "%", "^", "&", "*", "-", "_", "+", "="];
+	var _spaces = ["|", "(", ")", "{", "}", "[", "]", ";", ":", "\"", "\'", ",", ".", "<", ">", "/", "\\", "?", "!", "@", "#", "$", "%", "^", "&", "*", "-", "+", "="];
 	var _len = array_length(_spaces);
 	
 	for(var i = 0; i < _len; i++){
@@ -378,8 +378,12 @@ function lexer(_str){
 					}else
 					if (token_is_value(_token_value)){
 						_token_id = tokenID.Value;
-					}else
+					}else{
 						_token_id = tokenID.Variable;
+						
+						if (_nt == "(")
+							_token_id = tokenID.Function;
+					}
 					
 					break;
 			}

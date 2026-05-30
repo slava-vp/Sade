@@ -117,7 +117,11 @@ function parser(_tokens){
 				break;
 			
 			case tokenID.Function:
-				parse_call();
+				if (token_is(get_token_val(), global.Functions)){
+					parse_call();
+				}else{
+					parse_user_call();
+				}
 				
 				break;
 		}
@@ -145,6 +149,95 @@ function parser(_tokens){
 				
 				break;
 		}
+	}
+	
+	parse_func = function(){
+		next();
+		
+		var _func_name = get_token_val();
+		
+		next();
+		
+		if (get_token_val() != "(")
+			error("Expected '(' after function name", errorType.CRITICAL);
+		
+		next();
+		
+		var _params = [];
+		
+		if (get_token_val() != ")")
+			while(true){
+				array_push(_params, get_token_val());
+				next();
+				
+				if (get_token_val() == ",")
+					next();
+				else
+					break;
+			}
+		
+		if (get_token_val() != ")")
+			error("Expected ')' after condition", errorType.CRITICAL);
+		
+		next();
+		
+		var _func_start = label_create();
+		var _func_end = label_create();
+		
+		var _func_obj = {
+			start_label: _func_start,
+			params: _params,
+			stack: [],
+			memory: ds_map_create(),
+			return_value: undefined,
+		};
+		
+		array_push(bytecode, [opCode.PUSH, _func_obj]);
+		array_push(bytecode, [opCode.STORE, _func_name]);
+		
+		array_push(bytecode, [opCode.JUMP, _func_end]);
+		array_push(bytecode, [opCode.LABEL, _func_start]);
+		
+		array_push(bytecode, [opCode.PUSH, _func_obj]);
+		array_push(bytecode, [opCode.STORE, _func_name]);
+		
+		parse_block();
+		
+		array_push(bytecode, [opCode.PUSH, undefined]);
+		array_push(bytecode, [opCode.RETURN]);
+		
+		array_push(bytecode, [opCode.LABEL, _func_end]);
+	}
+	
+	parse_user_call = function(){
+		var _func_name = get_token_val();
+		
+		next();
+		
+		if (get_token_val() != "(")
+			error("Expected '(' after function name", errorType.CRITICAL);
+			
+		next();
+		
+		var _args_count = 0;
+		
+		if (get_token_val() != ")")
+			while(true){
+				parse_expression();
+				_args_count++;
+				
+				if (get_token_val() == ",")
+					next();
+				else
+					break;
+			}
+		
+		if (get_token_val() != ")")
+			error("Expected ')' after condition", errorType.CRITICAL);
+		
+		next();
+		
+		array_push(bytecode, [opCode.CALL, _func_name, _args_count]);
 	}
 	
 	parse_if = function(){
@@ -210,6 +303,10 @@ function parser(_tokens){
 						parse_if();
 						break;
 					
+					case "func":
+						parse_func();
+						break;
+					
 					case "return":
 						parse_return();
 						break;
@@ -218,9 +315,15 @@ function parser(_tokens){
 				break;
 			
 			case tokenID.Function:
-				parse_call();
+				if (token_is(get_token_val(), global.Functions)){
+					parse_call();
+				}else{
+					parse_user_call();
+				}
 				
 				break;
+			
+			
 		}
 	}
 	

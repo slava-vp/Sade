@@ -4,6 +4,6 @@ function run(_code){
 	VMachine(_bytecode);
 }
 
-run("if (-1) {print(1)}else{print(2) if(0){print(3)}else{print(4)}}");
+run("func test_output(_local){func bigger_0(_a){if (_a){return _a}else{return 0}} var b 10 return bigger_0(_local)} print(test_output(1), test_output(1923), test_output(2), test_output(-11), b)");
 
 game_end();

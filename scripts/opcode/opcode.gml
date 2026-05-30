@@ -1,27 +1,28 @@
 enum opCode{
-	PUSH            ,   // положить в стек
-	POP             ,   // взять из стека
-	STORE           ,   // положить в память
-	LOAD            ,   // взять из памяти
-	JUMP            ,   // безусловный переход
-	JUMP_IF_FALSE   ,   // условных переход, если false
-	JUMP_IF_TRUE    ,   // условных переход, если true
+	PUSH            ,   // push into stack
+	POP             ,   // pop from stack
+	STORE           ,   // push into memory
+	LOAD            ,   // pop from memory
+	JUMP            ,   // jump
+	JUMP_IF_FALSE   ,   // conditional jump -> false
+	JUMP_IF_TRUE    ,   // conditional jump -> true
 	
-	EXECUTE         ,   // выполнить встроенную функцию
+	EXECUTE         ,   // execute builtin function
+	CALL			,	// execute user-defined function
 	
-	LABEL           ,   // заметка
+	LABEL           ,   // label
 	
-	COMPARE         ,   // сравнить
-	ADD             ,   // сложить
-	SUB             ,   // вычесть
-	MUL             ,   // умножить
-	DIV             ,   // делить
-	POW             ,   // степень
+	COMPARE         ,   // ==, !=, >= ...
+	ADD             ,   // +
+	SUB             ,   // -
+	MUL             ,   // *
+	DIV             ,   // /
+	POW             ,   // ^
 	
-	HALT            ,   // остановка ВМ
-	RETURN          ,   // возврат из функции
-	BREAK           ,   // break из цикла
-	CONTINUE        ,   // continue в цикле
+	HALT            ,   // stop VMachine
+	RETURN          ,   // return from function
+	BREAK           ,   // break look
+	CONTINUE        ,   // continue in loop
 }
 
 function get_opcode_name(code){
@@ -34,6 +35,7 @@ function get_opcode_name(code){
 		case opCode.JUMP_IF_FALSE: return "JUMP_IF_FALSE";
 		case opCode.JUMP_IF_TRUE: return "JUMP_IF_TRUE";
 		case opCode.EXECUTE: return "EXECUTE";
+		case opCode.CALL: return "CALL";
 		case opCode.LABEL: return "LABEL";
 		case opCode.COMPARE: return "COMPARE";
 		case opCode.ADD: return "ADD";

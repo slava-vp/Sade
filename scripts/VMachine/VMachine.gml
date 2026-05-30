@@ -3,6 +3,7 @@ function VMachine(_bytecode){
 	len = array_length(bytecode);
 	
 	stack = [];
+	call_stack = [];
 	memory = ds_map_create();
 	
 	curr = 0;
@@ -49,7 +50,7 @@ function VMachine(_bytecode){
 			}else{
 				if (!token_is_value(_val)){
 					if (USE_0_AS_THE_DEFAULT_VALUE_FOR_VARIABLES){
-						error("The variable was not created prior to use.\nThe default value '0' is used.", errorType.WARNING);
+						error($"The variable '{_val}' was not created prior to use.\nThe default value '0' is used.", errorType.WARNING);
 						
 						return 0;
 					}else
@@ -135,7 +136,71 @@ function VMachine(_bytecode){
 				if (ds_map_exists(builtin_functions, _func_name))
 					builtin_functions[? _func_name](_args);
 				else
-					error($"Function '{_func_name}' not found", errorType.CRITICAL);
+					error($"Builtin Function '{_func_name}' not found", errorType.CRITICAL);
+				
+				break;
+			
+			case opCode.CALL:
+				var _func_name = _instruction[1];
+				
+				var _args_count = _instruction[2];
+				
+				var _func_obj = get_value(_func_name);
+				
+				if (!is_struct(_func_obj))
+					error($"User-defined Function '{_func_name}' not found", errorType.CRITICAL);
+				
+				var _args = [];
+				
+				for(var i = 0; i < _args_count; i++){
+					var _arg = array_pop(stack);
+					array_push(_args, _arg);
+				}
+				
+				_func_obj[$ "stack"] = [];
+				ds_map_clear(_func_obj[$ "memory"]);
+				
+				var _params_len = array_length(_func_obj[$ "params"]);
+				
+				for(var i = 0; i < _params_len; i++){
+					var _param_name = _func_obj[$ "params"][i];
+					var _param_val = (i < array_length(_args) ? _args[i] : undefined);
+					
+					_func_obj[$ "memory"][? _param_name] = _param_val;
+				}
+				
+				array_push(call_stack, {
+					return_curr: curr,
+					caller_stack: stack,
+					caller_memory: memory,
+					func_obj: _func_obj
+				});
+				
+				stack = _func_obj[$ "stack"];
+				memory = _func_obj[$ "memory"];
+				
+				jump_to_label(_func_obj[$ "start_label"]);
+				
+				break;
+			
+			case opCode.RETURN:
+				var _return_val = undefined;
+				
+				if (array_length(stack) > 0)
+					_return_val = get_value(array_pop(stack));
+				
+				if (array_length(call_stack) > 0){
+					var _frame = array_pop(call_stack);
+					_frame[$ "func_obj"][$ "return_value"] = _return_val;
+					
+					stack = _frame[$ "caller_stack"];
+					memory = _frame[$ "caller_memory"];
+					
+					array_push(stack, _return_val);
+					curr = _frame[$ "return_curr"];
+				}else{
+					curr = len;
+				}
 				
 				break;
 			
@@ -240,13 +305,14 @@ function VMachine(_bytecode){
 				
 				break;
 			
-			case opCode.RETURN:
 			case opCode.HALT:
 				curr = len;
 				
 				break;
 		}
 	}
+	
+	show_memory();
 	
 	ds_map_destroy(label_map);
 	ds_map_destroy(memory);
@@ -275,6 +341,8 @@ global.Keywords = [
 	"var",
 	"if",
 	"else",
+	"func",
+	"return",
 ];
 
 global.Functions = [
