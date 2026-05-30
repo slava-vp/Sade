@@ -4,6 +4,6 @@ function run(_code){
 	VMachine(_bytecode);
 }
 
-run("print(i) print(102) print('Hello World') var b -11 print(b) var g 'Hello World' print(g)");
+run("if (-1) {print(1)}else{print(2) if(0){print(3)}else{print(4)}}");
 
 game_end();

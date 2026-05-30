@@ -165,13 +165,13 @@ function parser(_tokens){
 		var _label_else = label_create();
 		var _label_end = label_create();
 		
-		array_push(bytecode, [opCode.JUMP_IF_FALSE, label_else]);
+		array_push(bytecode, [opCode.JUMP_IF_FALSE, _label_else]);
 		
 		parse_block();
 		
-		array_push(bytecode, [opCode.JUMP, label_end]);
+		array_push(bytecode, [opCode.JUMP, _label_end]);
 		
-		array_push(bytecode, [opCode.LABEL, label_else]);
+		array_push(bytecode, [opCode.LABEL, _label_else]);
 		
 		if (get_token_val() == "else"){
 			next();
@@ -182,7 +182,7 @@ function parser(_tokens){
 				parse_block();
 		}
 		
-		array_push(bytecode, [opCode.LABEL, label_end]);
+		array_push(bytecode, [opCode.LABEL, _label_end]);
 	}
 	
 	parse_assignment = function(){
