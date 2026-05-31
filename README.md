@@ -34,6 +34,7 @@ for(i in 10){
 
 for(i in [1, 2, 3, 4, 5] step 2){
     print(i)
+}
 
 // use builtin methods
 var a 'Hello '
@@ -43,7 +44,7 @@ a.cat(b)
 
 print(a) // -> 'Hello World!'
 // etc.
-}
+
 ```
 
 ~Oh, yeah. Find a place to write code.~
