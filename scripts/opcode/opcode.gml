@@ -12,6 +12,9 @@ enum opCode{
 	
 	LABEL           ,   // label
 	
+	OR				,	// ||
+	AND				,	// &&
+	
 	DUP				,	// clone
 	DELETE			,	// delete data from memory
 	
@@ -49,6 +52,8 @@ function get_opcode_name(code){
 		case opCode.CALL: return "CALL";
 		case opCode.LABEL: return "LABEL";
 		case opCode.COMPARE: return "COMPARE";
+		case opCode.OR: return "OR";
+		case opCode.AND: return "AND";
 		case opCode.DUP: return "DUP";
 		case opCode.ADD: return "ADD";
 		case opCode.SUB: return "SUB";

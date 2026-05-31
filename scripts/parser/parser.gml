@@ -26,6 +26,31 @@ function parser(_tokens){
 		return $"label_{++label_count}";
 	}
 	
+	parse_logic = function(){
+		parse_comparison();
+		
+		while(curr < len){
+			var _val = get_token_val();
+			
+			if (_val == undefined) break;
+			
+			if (_val == "&&"){
+				next();
+				
+				parse_comparison();
+				
+				array_push(bytecode, [opCode.AND]);
+			}else if (_val == "||"){
+				next();
+				
+				parse_comparison();
+				
+				array_push(bytecode, [opCode.OR]);
+			}else
+				break;
+		}
+	}
+	
 	parse_var = function(){
 		next();
 		
@@ -313,7 +338,9 @@ function parser(_tokens){
 			
 			if (_val == undefined) break;
 			
-			if (_id == tokenID.Operator){
+			if (_val == "&&" || _val == "||") break;
+			
+			if (_id == tokenID.Operator || _id == tokenID.More || _id == tokenID.Less || _val == "==" || _val == "!=" || _val == "<=" || _val == ">=" || _val == "<" || _val == ">"){
 				next();
 				
 				parse_addition();
@@ -325,7 +352,7 @@ function parser(_tokens){
 	}
 	
 	parse_expression = function(){
-		parse_comparison();
+		parse_logic();
 	}
 	
 	parse_func = function(){

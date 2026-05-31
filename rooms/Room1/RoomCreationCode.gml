@@ -4,6 +4,6 @@ function run(_code){
 	VMachine(_bytecode);
 }
 
-run("var a [1, 2, 3] print(a[2], 'Content: ')");
+run("var x 10 var y 20 if (x > 5 && y < 30 && 0) { var z x + y print(z) }");
 
 game_end();
