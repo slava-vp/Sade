@@ -23,6 +23,7 @@
   "resources":[
     {"id":{"name":"Room1","path":"rooms/Room1/Room1.yy",},},
     {"id":{"name":"error","path":"scripts/error/error.yy",},},
+    {"id":{"name":"language","path":"scripts/language/language.yy",},},
     {"id":{"name":"lexer","path":"scripts/lexer/lexer.yy",},},
     {"id":{"name":"opcode","path":"scripts/opcode/opcode.yy",},},
     {"id":{"name":"parser","path":"scripts/parser/parser.yy",},},
