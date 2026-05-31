@@ -32,10 +32,9 @@ for(i in 10){
     print(i)
 }
 
-for(i=1 in [1, 2, 3, 4, 5] step 2){
+for(i in [1, 2, 3, 4, 5] step 2){
     print(i)
 }
-
 ```
 
 ~Oh, yeah. Find a place to write code.~
