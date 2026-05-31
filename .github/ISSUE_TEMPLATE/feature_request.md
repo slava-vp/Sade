@@ -7,12 +7,12 @@ assignees: ''
 
 ---
 
-Function
+## Function
 // Describe what you want to add
 
 
 
-For example
+## For example
 // Example of work in code
 ```
 
