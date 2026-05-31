@@ -21,6 +21,7 @@ enum opCode{
 	ARRAY_CREATE	,	// create an array
 	ARRAY_GET		,	// get value from index
 	ARRAY_SET		,	// set value
+	ARRAY_LEN		,	// get array len
 	
 	COMPARE         ,   // ==, !=, >= ...
 	ADD             ,   // +
@@ -48,6 +49,7 @@ function get_opcode_name(code){
 		case opCode.ARRAY_CREATE: return "ARRAY_CREATE";
 		case opCode.ARRAY_GET: return "ARRAY_GET";
 		case opCode.ARRAY_SET: return "ARRAY_SET";
+		case opCode.ARRAY_LEN: return "ARRAY_LEN";
 		case opCode.EXECUTE: return "EXECUTE";
 		case opCode.CALL: return "CALL";
 		case opCode.LABEL: return "LABEL";
@@ -55,6 +57,7 @@ function get_opcode_name(code){
 		case opCode.OR: return "OR";
 		case opCode.AND: return "AND";
 		case opCode.DUP: return "DUP";
+		case opCode.DELETE: return "DELETE";
 		case opCode.ADD: return "ADD";
 		case opCode.SUB: return "SUB";
 		case opCode.MUL: return "MUL";

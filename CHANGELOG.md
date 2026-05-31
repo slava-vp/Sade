@@ -4,6 +4,11 @@
 
 ### Added:
   - arrays
+  - logical operators
+  - for cycle
+
+### Other:
+  - small code rebase
 
 ## v0.0.3 (05.30.2026)
 

@@ -351,6 +351,13 @@ function VMachine(_bytecode){
 				
 				break;
 			
+			case opCode.ARRAY_LEN:
+				var _arr = array_pop(stack);
+				
+				array_push(stack, array_length(_arr));
+				
+				break;
+			
 			case opCode.JUMP_IF_TRUE:
 				var _value = array_pop(stack);
 				
