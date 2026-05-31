@@ -1,5 +1,11 @@
 # Changelog
 
+## V0.0.5 (06.01.2026)
+
+### Added:
+  - builtin methods
+  - testes (Methods overwrite the state of a variable)
+
 ## v0.0.4 (05.31.2026)
 
 ### Added:

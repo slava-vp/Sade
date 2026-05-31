@@ -1,4 +1,4 @@
-function lexer(_str){
+function lexer(_str, _show_output = true){
 	_str += " ";
 	
 	lexer_error = function(_error, _harmless = true){
@@ -10,9 +10,11 @@ function lexer(_str){
 			lexer_stop = true;
 	}
 	
-	show_debug_message("\nLexer Start ===========");
-	
-	show_debug_message($"string1: {_str}");
+	if (_show_output){
+		show_debug_message("\nLexer Start ===========");
+		
+		show_debug_message($"string1: {_str}");
+	}
 	
 	strings = array_create(10, "");
 	strings_count = 0;
@@ -61,7 +63,7 @@ function lexer(_str){
 		str = string_replace_all(str, _spaces[i], $" {_spaces[i]} ");
 	}
 	
-	show_debug_message($"string2:  {_str}");
+	if (_show_output) show_debug_message($"string2:  {_str}");
 	lexer_stop = false;
 	
 	tokenizer = function(){
@@ -103,7 +105,7 @@ function lexer(_str){
 				case "lexerpasteherestring":
 					_token_id = tokenID.Value;
 					
-					_token_value = strings[0];
+					_token_value = $"'{strings[0]}'";
 					array_delete(strings, 0, -1);
 					
 					break;
@@ -424,8 +426,11 @@ function lexer(_str){
 	
 	var _tokens = tokenizer();
 	
-	show_debug_message(_tokens);
+	if (_show_output){
+		show_debug_message(_tokens);
+		
+		show_debug_message("Lexer End ============\n");
+	}
 	
-	show_debug_message("Lexer End ============\n");
 	return _tokens;
 }

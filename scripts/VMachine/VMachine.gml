@@ -39,15 +39,77 @@ function VMachine(_bytecode){
 		array_foreach(_args, function(value, index){ show_debug_message(value); });
 	}
 	
+	string_methods = ds_map_create();
+	string_methods[? "cat"] = function(_str, _args){
+		var _len = array_length(_args);
+	
+		for(var i = 0; i < _len; i++){
+			_str += $"{_args[i]}";
+		}
+	
+		return _str;
+	}
+	string_methods[? "len"] = function(_str, _args){
+		return string_length(_str);
+	}
+	string_methods[? "cp"] = function(_str, _args){
+		return string_copy(_str, _args[0], _args[1]);
+	}
+	string_methods[? "ch"] = function(_str, _args){
+		return string_char_at(_str, _args[0]);
+	}
+	string_methods[? "ins"] = function(_str, _args){
+		return string_insert(_args[0], _str, _args[1]);
+	}
+
+	array_methods = ds_map_create();
+	array_methods[? "push"] = function(_arr, _args){
+		array_push(_arr, _args[0]);
+	
+		return _arr;
+	}
+	array_methods[? "pop"] = function(_arr, _args){
+		array_pop(_arr);
+		return _arr;
+	}
+	array_methods[? "last"] = function(_arr, _args){
+		return _arr[array_length(_arr) - 1];
+	}
+	array_methods[? "len"] = function(_arr, _args){
+		return array_length(_arr);
+	}
+	array_methods[? "ins"] = function(_arr, _args){
+		array_insert(_arr, _args[0], _args[1]);
+		return _arr;
+	}
+	array_methods[? "del"] = function(_arr, _args){
+		array_delete(_arr, _args[0], _args[1]);
+		return _arr;
+	};
+	
 	show_debug_message(">VMachine<");
 	
 	get_value = function(_val){
-		if (is_numeric(_val)) return real(_val);
+		if (is_array(_val) || is_struct(_val)) return _val;
+		
+		if (string_length(string_digits(_val)) == string_length(_val) && _val != ""){
+				return real(_val);
+		}
+
+		if (is_string(_val) && string_length(_val) >= 2){
+			if (string_char_at(_val, 1) == "'" && string_char_at(_val, string_length(_val)) == "'"){
+				return string_copy(_val, 2, string_length(_val) - 2); 
+			}
+		}
 		
 		if (token_is_variable(_val)){
 			if (ds_map_exists(memory, _val)){	
 				return memory[? _val];
 			}else{
+				if (is_string(_val)){
+					return _val;
+				}
+				
 				if (!token_is_value(_val)){
 					if (USE_0_AS_THE_DEFAULT_VALUE_FOR_VARIABLES){
 						error($"The variable '{_val}' was not created prior to use.\nThe default value '0' is used.", errorType.WARNING);
@@ -180,6 +242,32 @@ function VMachine(_bytecode){
 				memory = _func_obj[$ "memory"];
 				
 				jump_to_label(_func_obj[$ "start_label"]);
+				
+				break;
+			
+			case opCode.METHOD:
+				var _method = _instruction[1];
+				var _args_count = _instruction[2];
+				var _args = [];
+				
+				for(var i = 0; i < _args_count; i++){
+					_args = array_concat([get_value(array_pop(stack))], _args);
+				}
+				
+				var _obj = get_value(array_pop(stack));
+				var _methods = undefined;
+				
+				if (is_string(_obj)){
+					_methods = string_methods;
+				}else if (is_array(_obj)){
+					_methods = array_methods;
+				}
+				
+				if (_methods != undefined && ds_map_exists(_methods, _method)){
+					var _result = _methods[? _method](_obj, _args);
+					array_push(stack, _result);
+				}else
+					error($"Unknown method '{_method}' for this type", errorType.CRITICAL);
 				
 				break;
 			
@@ -401,7 +489,10 @@ function VMachine(_bytecode){
 	show_memory();
 	
 	ds_map_destroy(label_map);
+	ds_map_destroy(builtin_functions);
 	ds_map_destroy(memory);
+	ds_map_destroy(string_methods);
+	ds_map_destroy(array_methods);
 	stack = -1;
 	
 	show_debug_message(">VMachine<\n");

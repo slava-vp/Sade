@@ -9,6 +9,7 @@ enum opCode{
 	
 	EXECUTE         ,   // execute builtin function
 	CALL			,	// execute user-defined function
+	METHOD			,	// execute method
 	
 	LABEL           ,   // label
 	
@@ -52,6 +53,7 @@ function get_opcode_name(code){
 		case opCode.ARRAY_LEN: return "ARRAY_LEN";
 		case opCode.EXECUTE: return "EXECUTE";
 		case opCode.CALL: return "CALL";
+		case opCode.METHOD: return "METHOD";
 		case opCode.LABEL: return "LABEL";
 		case opCode.COMPARE: return "COMPARE";
 		case opCode.OR: return "OR";

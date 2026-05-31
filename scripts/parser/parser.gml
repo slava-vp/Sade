@@ -1,4 +1,4 @@
-function parser(_tokens){
+function parser(_tokens, _show_output){
 	tokens = _tokens;
 	bytecode = [];
 	len = array_length(tokens);
@@ -356,6 +356,40 @@ function parser(_tokens){
 					
 					array_push(bytecode, [opCode.ARRAY_GET]);
 				}
+				
+				while(get_token_val() == "."){
+					next();
+					
+					var _method = get_token_val();
+					
+					next();
+					
+					if (get_token_val() != "(")
+						error("Expected '(' after method name", errorType.CRITICAL);
+					
+					next();
+					
+					var _arg_count = 0;
+					if (get_token_val() != ")"){
+						while(curr < len){
+							parse_expression();
+							_arg_count++;
+							
+							if (get_token_val() == ",")
+								next();
+							else
+								break;
+						}
+					}
+					
+					if (get_token_val() != ")")
+						error("Expected ')'", errorType.CRITICAL);
+					
+					next();
+					
+					array_push(bytecode, [opCode.METHOD, _method, _arg_count]);
+				}
+				
 				
 				return;
 			
@@ -870,6 +904,8 @@ function parser(_tokens){
 				break;
 			
 			case tokenID.Variable:
+				var _name = get_token_val();
+			
 				if (curr + 1 < len){
 					var _next_val = tokens[curr + 1][$ "val"];
 					
@@ -877,9 +913,21 @@ function parser(_tokens){
 						parse_postfix_idec();
 						break;
 					}
+					
+					if (_next_val == "=" || _next_val == "+=" || _next_val == "-=" || _next_val == "*=" || _next_val == "/=" || _next_val == "^=" || _next_val == "["){
+						parse_assignment();
+						
+						break;
+					}
+					
+					if (_next_val == "."){
+						parse_expression();
+						
+						array_push(bytecode, [opCode.STORE, _name]);
+					}
 				}
-				parse_assignment();
 				
+				parse_expression();
 				break;
 			
 			case tokenID.Unar:
@@ -939,7 +987,7 @@ function parser(_tokens){
 	
 	array_push(bytecode, [opCode.HALT]);
 	
-	show_bytecode(bytecode);
+	if (_show_output) show_bytecode(bytecode);
 	return bytecode;
 }
 

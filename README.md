@@ -2,7 +2,7 @@
 A project that one person is developing because he is bored.
 
 ## Version
-v0.0.4
+v0.0.5
 
 ## What can it do?
 ```
@@ -34,6 +34,15 @@ for(i in 10){
 
 for(i in [1, 2, 3, 4, 5] step 2){
     print(i)
+
+// use builtin methods
+var a 'Hello '
+var b 'World!'
+
+a.cat(b)
+
+print(a) // -> 'Hello World!'
+// etc.
 }
 ```
 
