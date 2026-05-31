@@ -111,10 +111,6 @@ function parser(_tokens){
 				return;
 			
 			case tokenID.Variable:
-				//array_push(bytecode, [opCode.LOAD, get_token_val()])
-				//
-				//next();
-				
 				var _name = get_token_val();
 				
 				array_push(bytecode, [opCode.LOAD, _name]);
@@ -136,6 +132,19 @@ function parser(_tokens){
 					array_push(bytecode, [opCode.STORE, _name]);
 				}
 				
+				while(get_token_val() == "["){
+					next();
+					
+					parse_expression();
+					
+					if (get_token_val() != "]")
+						error("Expected ']'", errorType.CRITICAL);
+					
+					next();
+					
+					array_push(bytecode, [opCode.ARRAY_GET]);
+				}
+				
 				return;
 			
 			case tokenID.Function:
@@ -149,6 +158,32 @@ function parser(_tokens){
 			
 			case tokenID.Unar:
 				parse_prefix_idec();
+				
+				return;
+			
+			case tokenID.Sbracket_L:
+				next();
+				
+				var _len = 0;
+				
+				if (get_token_val() != "]")
+					while(curr < len){
+						parse_expression();
+						
+						_len++;
+						
+						if (get_token_val() == ",")
+							next();
+						else
+							break;
+					}
+				
+				if (get_token_val() != "]")
+					error("Expected ']'", errorType.CRITICAL);
+				
+				next();
+				
+				array_push(bytecode, [opCode.ARRAY_CREATE, _len]);
 				
 				return;
 		}
@@ -425,7 +460,76 @@ function parser(_tokens){
 		
 		next();
 		
-		//parse_expression();
+		if (get_token_val() == "["){
+			array_push(bytecode, [opCode.LOAD, _name]);
+			next();
+			
+			parse_expression();
+			
+			if (get_token_val() != "]")
+				error("Expected ']'", errorType.CRITICAL);
+			
+			next();
+			
+			var _op = get_token_val();
+			
+			switch(_op){
+				case "=":
+					next();
+					
+					parse_expression();
+					
+					array_push(bytecode, [opCode.ARRAY_SET]);
+					
+					array_push(bytecode, [opCode.STORE, _name]);
+					
+					break;
+				
+				case "+=":
+				case "-=":
+				case "*=":
+				case "/=":
+				case "//=":
+				case "^=":
+					var _idx_tmp = $"__idx_{label_create()}_";
+					var _val_tmp = $"__val_{label_create()}_";
+					
+					array_push(bytecode, [opCode.STORE, _idx_tmp]);
+					array_push(bytecode, [opCode.DUP]);
+					array_push(bytecode, [opCode.LOAD, _idx_tmp]);
+					array_push(bytecode, [opCode.ARRAY_GET]);
+					
+					next();
+					
+					parse_expression();
+					
+					if (_op == "+=") array_push(bytecode, [opCode.ADD]);
+					else if (_op == "-=") array_push(bytecode, [opCode.SUB]);
+					else if (_op == "*=") array_push(bytecode, [opCode.MUL]);
+					else if (_op == "/=") array_push(bytecode, [opCode.DIV]);
+					else if (_op == "//=") array_push(bytecode, [opCode.IDIV]);
+					else if (_op == "^=") array_push(bytecode, [opCode.POW]);
+					
+					
+					array_push(bytecode, [opCode.STORE, _val_tmp]);
+					array_push(bytecode, [opCode.LOAD, _idx_tmp]);
+					array_push(bytecode, [opCode.LOAD, _val_tmp]);
+					array_push(bytecode, [opCode.ARRAY_SET]);
+					array_push(bytecode, [opCode.STORE, _name]);
+					
+					array_push(bytecode, [opCode.DELETE, _idx_tmp]);
+					array_push(bytecode, [opCode.DELETE, _val_tmp]);
+					
+					break;
+				
+				default:
+					error($"Unknown assignment operator: {_op}", errorType.CRITICAL);
+					
+					break;
+			}
+			
+			return;
+		}
 		
 		var _op = get_token_val();
 		

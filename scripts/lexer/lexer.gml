@@ -131,7 +131,7 @@ function lexer(_str){
 					break;
 					
 				case "{":
-					_token_id = tokenID.Bracket_R;
+					_token_id = tokenID.Bracket_L;
 					
 					break;
 					
@@ -141,7 +141,7 @@ function lexer(_str){
 					break;
 					
 				case "[":
-					_token_id = tokenID.Sbracket_R;
+					_token_id = tokenID.Sbracket_L;
 					
 					break;
 					

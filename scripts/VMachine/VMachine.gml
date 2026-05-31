@@ -294,6 +294,41 @@ function VMachine(_bytecode){
 				
 				break;
 			
+			case opCode.ARRAY_CREATE:
+				var _len = _instruction[1];
+				
+				var _arr = [];
+				
+				for(var i = _len - 1; i >= 0; i--){
+					_arr[i] = array_pop(stack);
+				}
+				
+				array_push(stack, _arr);
+				
+				break;
+			
+			case opCode.ARRAY_GET:
+				var _index = array_pop(stack);
+				
+				var _arr = array_pop(stack);
+				
+				array_push(stack, _arr[_index]);
+				
+				break;
+			
+			case opCode.ARRAY_SET:
+				var _value = array_pop(stack);
+				
+				var _index = get_value(array_pop(stack));
+				
+				var _arr = array_pop(stack);
+				
+				_arr[_index] = _value;
+				
+				array_push(stack, _arr);
+				
+				break;
+			
 			case opCode.JUMP_IF_TRUE:
 				var _value = array_pop(stack);
 				
@@ -304,6 +339,20 @@ function VMachine(_bytecode){
 					
 					jump_to_label(_label);
 				}
+				
+				break;
+			
+			case opCode.DUP:
+				var _val = array_pop(stack);
+				
+				array_push(stack, _val, _val);
+				
+				break;
+			
+			case opCode.DELETE:
+				var _name = _instruction[1];
+				
+				ds_map_delete(memory, _name);
 				
 				break;
 			

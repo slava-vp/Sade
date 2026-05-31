@@ -12,6 +12,13 @@ enum opCode{
 	
 	LABEL           ,   // label
 	
+	DUP				,	// clone
+	DELETE			,	// delete data from memory
+	
+	ARRAY_CREATE	,	// create an array
+	ARRAY_GET		,	// get value from index
+	ARRAY_SET		,	// set value
+	
 	COMPARE         ,   // ==, !=, >= ...
 	ADD             ,   // +
 	SUB             ,   // -
@@ -35,10 +42,14 @@ function get_opcode_name(code){
 		case opCode.JUMP: return "JUMP";
 		case opCode.JUMP_IF_FALSE: return "JUMP_IF_FALSE";
 		case opCode.JUMP_IF_TRUE: return "JUMP_IF_TRUE";
+		case opCode.ARRAY_CREATE: return "ARRAY_CREATE";
+		case opCode.ARRAY_GET: return "ARRAY_GET";
+		case opCode.ARRAY_SET: return "ARRAY_SET";
 		case opCode.EXECUTE: return "EXECUTE";
 		case opCode.CALL: return "CALL";
 		case opCode.LABEL: return "LABEL";
 		case opCode.COMPARE: return "COMPARE";
+		case opCode.DUP: return "DUP";
 		case opCode.ADD: return "ADD";
 		case opCode.SUB: return "SUB";
 		case opCode.MUL: return "MUL";
