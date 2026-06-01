@@ -68,4 +68,7 @@ function run_all_tests(_show_output = false){// Checks to make sure nothing's br
 }
 
 run_all_tests(false);
+
+run("var a 10 a %= 3 print(a)");
+
 game_end();

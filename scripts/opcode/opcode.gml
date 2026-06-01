@@ -31,6 +31,7 @@ enum opCode{
 	DIV             ,   // /
 	IDIV            ,   // //=
 	POW             ,   // ^
+	REM				,	// %=
 	
 	HALT            ,   // stop VMachine
 	RETURN          ,   // return from function
@@ -65,6 +66,7 @@ function get_opcode_name(code){
 		case opCode.MUL: return "MUL";
 		case opCode.DIV: return "DIV";
 		case opCode.POW: return "POW";
+		case opCode.REM: return "REM";
 		case opCode.HALT: return "HALT";
 		case opCode.RETURN: return "RETURN";
 		case opCode.BREAK: return "BREAK";

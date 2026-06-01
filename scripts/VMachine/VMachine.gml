@@ -372,6 +372,17 @@ function VMachine(_bytecode){
 				array_push(stack, a && b);
 				
 				break;
+			
+			case opCode.REM:
+				var b_raw = array_pop(stack);
+				var a_raw = array_pop(stack);
+				
+				var b = get_value(b_raw);
+				var a = get_value(a_raw);
+				
+				array_push(stack, a % b);
+				
+				break;
 				
 			case opCode.OR:
 				var b_raw = array_pop(stack);

@@ -291,6 +291,14 @@ function lexer(_str, _show_output = true){
 				case "%":
 					_token_id = tokenID.Percent;
 					
+					if (_nt == "="){
+						_token_id = tokenID.Operator;
+						_token_value = "%=";
+						
+						array_delete(_words, curr + 1, -1);
+						_len--;
+					}
+					
 					break;
 					
 				case "=":

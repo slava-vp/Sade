@@ -1,4 +1,4 @@
-function parser(_tokens, _show_output){
+function parser(_tokens, _show_output = false){
 	tokens = _tokens;
 	bytecode = [];
 	len = array_length(tokens);
@@ -561,7 +561,7 @@ function parser(_tokens, _show_output){
 			
 			if (_val == "&&" || _val == "||") break;
 			
-			if (_id == tokenID.Operator || _id == tokenID.More || _id == tokenID.Less || _val == "==" || _val == "!=" || _val == "<=" || _val == ">=" || _val == "<" || _val == ">"){
+			if (_id == tokenID.Operator || _id == tokenID.More || _id == tokenID.Less || _val == "%=" || _val == "==" || _val == "!=" || _val == "<=" || _val == ">=" || _val == "<" || _val == ">"){
 				next();
 				
 				parse_addition();
@@ -914,7 +914,7 @@ function parser(_tokens, _show_output){
 						break;
 					}
 					
-					if (_next_val == "=" || _next_val == "+=" || _next_val == "-=" || _next_val == "*=" || _next_val == "/=" || _next_val == "^=" || _next_val == "["){
+					if (_next_val == "=" || _next_val == "%=" || _next_val == "+=" || _next_val == "-=" || _next_val == "*=" || _next_val == "/=" || _next_val == "^=" || _next_val == "["){
 						parse_assignment();
 						
 						break;
