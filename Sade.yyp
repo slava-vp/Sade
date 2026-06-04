@@ -37,6 +37,7 @@
     {"id":{"name":"lexer","path":"scripts/lexer/lexer.yy",},},
     {"id":{"name":"opcode","path":"scripts/opcode/opcode.yy",},},
     {"id":{"name":"parser","path":"scripts/parser/parser.yy",},},
+    {"id":{"name":"Preprocessor","path":"scripts/Preprocessor/Preprocessor.yy",},},
     {"id":{"name":"setup","path":"scripts/setup/setup.yy",},},
     {"id":{"name":"Snippets","path":"scripts/Snippets/Snippets.yy",},},
     {"id":{"name":"token","path":"scripts/token/token.yy",},},

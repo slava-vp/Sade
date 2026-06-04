@@ -1,4 +1,4 @@
-#macro	SADE_LANG_VER "0.0.6"
+#macro	SADE_LANG_VER "0.0.7"
 #macro	EDITOR_VER "0.0.1"
 
 enum EditorMode {

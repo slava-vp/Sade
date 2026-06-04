@@ -47,9 +47,12 @@ click_start_char = 0;
 
 if (editor_mode == EditorMode.full_editor){
 	run_code = function(){
+		var _prep = Preprocessor(lines);
+		var _len = array_length(_prep);
+		
 		var _code = "";
-		for(var i = 0; i < lines_count; i++){
-			_code += lines[i];
+		for(var i = 0; i < _len; i++){
+			_code += _prep[i];
 		}
 		
 		if (_code == ""){
