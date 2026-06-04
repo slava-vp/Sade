@@ -1,7 +1,12 @@
-function lexer(_str, _show_output = true){
+function lexer(_str, _show_output = true, _just_words = false, _show_errors = true){
 	_str += " ";
 	
+	just_words = _just_words;
+	show_errors = _show_errors;
+	
 	lexer_error = function(_error, _harmless = true){
+		if (!show_errors) exit;
+		
 		var _text = $"LEXER: {_error}";
 		
 		error(_text, (!_harmless ? errorType.ERROR : errorType.INFO));
@@ -35,7 +40,7 @@ function lexer(_str, _show_output = true){
 		if (_ch == "'"){
 			_in_string = !_in_string;
 			
-			if (!_in_string) {
+			if (!_in_string){
 				strings_count++;
 				
 				if (_string_start != -1){
@@ -56,7 +61,7 @@ function lexer(_str, _show_output = true){
 	
 	
 	str = _str;
-	var _spaces = ["|", "(", ")", "{", "}", "[", "]", ";", ":", "\"", "\'", ",", ".", "<", ">", "/", "\\", "?", "!", "@", "#", "$", "%", "^", "&", "*", "-", "+", "="];
+	var _spaces = ["lexerpasteherestring", "|", "(", ")", "{", "}", "[", "]", ";", ":", "\"", "'", ",", ".", "<", ">", "/", "\\", "?", "!", "@", "#", "$", "%", "^", "&", "*", "-", "+", "="];
 	var _len = array_length(_spaces);
 	
 	for(var i = 0; i < _len; i++){
@@ -95,6 +100,7 @@ function lexer(_str, _show_output = true){
 		
 		for(; curr < _len; curr++){
 			if (lexer_stop) exit;
+
 			
 			_token_id = -1;
 			_token_value = _words[curr];
@@ -438,6 +444,17 @@ function lexer(_str, _show_output = true){
 		show_debug_message(_tokens);
 		
 		show_debug_message("Lexer End ============\n");
+	}
+	
+	if (just_words){
+		var _words = [];
+		
+		var _tlen = array_length(_tokens);
+		for(var i = 0; i < _tlen; i++){
+			array_push(_words, _tokens[i][$ "val"]);
+		}
+		
+		return _words;
 	}
 	
 	return _tokens;

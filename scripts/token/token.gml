@@ -87,6 +87,8 @@ function token_is_variable(_tok){
 }
 
 function token_is_value(_tok){
+	if (_tok == "") return false;
+	
 	var _is_string = token_is_string(_tok);
 	
 	var _dig = string_digits(_tok);

@@ -991,7 +991,7 @@ function parser(_tokens, _show_output = false){
 	return bytecode;
 }
 
-function show_bytecode(bc) {
+function show_bytecode(bc){
 	var _len = array_length(bc);
 	
 	for(var i = 0; i < _len; i++){

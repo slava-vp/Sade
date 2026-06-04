@@ -1,0 +1,1 @@
+global.popup_active = false;

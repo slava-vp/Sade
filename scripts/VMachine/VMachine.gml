@@ -31,12 +31,12 @@ function VMachine(_bytecode){
 			_str += $"{_keys[i]}: {memory[? _keys[i]]}\n";
 		}
 		
-		show_debug_message($"\nMemory=======\n{_str}Memory end===\n");
+		console_log($"\nMemory=======\n{_str}Memory end===\n");
 	}
 	
 	builtin_functions = ds_map_create();
 	builtin_functions[? "print"] = function(_args){
-		array_foreach(_args, function(value, index){ show_debug_message(value); });
+		array_foreach(_args, function(value, index){ console_log(value); });
 	}
 	
 	string_methods = ds_map_create();
@@ -87,7 +87,7 @@ function VMachine(_bytecode){
 		return _arr;
 	};
 	
-	show_debug_message(">VMachine<");
+	console_log(">VMachine<");
 	
 	get_value = function(_val){
 		if (is_array(_val) || is_struct(_val)) return _val;
@@ -267,7 +267,7 @@ function VMachine(_bytecode){
 					var _result = _methods[? _method](_obj, _args);
 					array_push(stack, _result);
 				}else
-					error($"Unknown method '{_method}' for this type", errorType.CRITICAL);
+					error($"Unknown method '{_method}' forthis type", errorType.CRITICAL);
 				
 				break;
 			
@@ -506,6 +506,6 @@ function VMachine(_bytecode){
 	ds_map_destroy(array_methods);
 	stack = -1;
 	
-	show_debug_message(">VMachine<\n");
+	console_log(">VMachine<\n");
 	return 0;
 }
