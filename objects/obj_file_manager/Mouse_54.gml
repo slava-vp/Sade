@@ -18,7 +18,7 @@ if (mouse_y >= _panel_top && mouse_y < _panel_top + window.height){
 	
 	show_context_menu = true;
 	context_menu_x = mouse_x;
-	context_menu_y = mouse_y - (6 * context_menu_item_height + 4);
+	context_menu_y = mouse_y - (2 * context_menu_item_height + 4);
 	if (context_menu_y < 0) context_menu_y = mouse_y;
 	
 	context_menu_items = [];
@@ -68,13 +68,13 @@ if (mouse_y >= _panel_top && mouse_y < _panel_top + window.height){
 	}
 	
 	array_push(context_menu_items, {
-		label: "New .sade file",
+		label: "New .sadel file",
 		action: function(){
 			obj_file_manager.show_input_popup(
 				"Create new code file", "",
 				function(_result){
 					if (_result == "") return;
-					var _full = obj_file_manager.target_creation_dir + "/" + _result + ".sade";
+					var _full = obj_file_manager.target_creation_dir + "/" + _result + ".sadel";
 					if (!file_exists(_full)){
 						var _f = file_text_open_write(_full);
 						file_text_close(_f);

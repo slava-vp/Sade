@@ -52,10 +52,10 @@ if (pending_conflict_menu){
 	array_push(context_menu_items, {
 		label: "Replace existing",
 		action: function(){
-			var _t = obj_file_manager.conflict_target;
-			var _s = obj_file_manager.conflict_source;
-			var _tp = obj_file_manager.conflict_type;
-			var _nm = obj_file_manager.conflict_name;
+			_t = obj_file_manager.conflict_target;
+			_s = obj_file_manager.conflict_source;
+			_tp = obj_file_manager.conflict_type;
+			_nm = obj_file_manager.conflict_name;
 			
 			if (directory_exists(_t)){
 				obj_file_manager.delete_all_in_directory(_t);
@@ -65,16 +65,17 @@ if (pending_conflict_menu){
 			}
 			
 			obj_file_manager.perform_paste_direct(_s, _t, _tp, _nm);
+			obj_file_manager.refresh_directory_tree();
 		}
 	});
 	
 	array_push(context_menu_items, {
 		label: "Rename and paste",
 		action: function(){
-			var _d = obj_file_manager.conflict_target_dir;
-			var _s = obj_file_manager.conflict_source;
-			var _tp = obj_file_manager.conflict_type;
-			var _nm = obj_file_manager.conflict_name;
+			_d = obj_file_manager.conflict_target_dir;
+			_s = obj_file_manager.conflict_source;
+			_tp = obj_file_manager.conflict_type;
+			_nm = obj_file_manager.conflict_name;
 			
 			obj_file_manager.show_input_popup(
 				"Enter new name:",
@@ -83,6 +84,8 @@ if (pending_conflict_menu){
 					if (_new_name != "" && _new_name != _nm){
 						var _new_path = _d + "/" + _new_name;
 						obj_file_manager.perform_paste_direct(_s, _new_path, _tp, _new_name);
+						
+						obj_file_manager.refresh_directory_tree();
 					}
 				},
 				function(){}

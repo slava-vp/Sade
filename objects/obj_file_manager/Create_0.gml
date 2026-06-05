@@ -418,7 +418,7 @@ delete_selected_item = function(_child_path){
 	var _item_name = filename_name(_child_path);
 	var _is_dir = directory_exists(_child_path);
 	var _type = _is_dir ? "directory" : "file";
-	var _path = _child_path;
+	_path = _child_path;
 	
 	show_input_popup(
 		"Delete " + _type + "? Type Y to confirm",

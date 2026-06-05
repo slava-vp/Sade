@@ -1,5 +1,5 @@
 #macro	SADE_LANG_VER "0.0.7"
-#macro	EDITOR_VER "0.0.1"
+#macro	EDITOR_VER "0.0.2"
 
 enum EditorMode {
 	full_editor,
@@ -51,6 +51,8 @@ global.Keywords = [
 	"func",
 	"return",
 	"for",
+	"#include",
+	"#set",
 ];
 
 global.Functions = [

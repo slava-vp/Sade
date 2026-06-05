@@ -175,6 +175,8 @@ if (keyboard_check(vk_control) && _key == ord("V")){
 
 if (keyboard_check(vk_control) && _key == ord("S")){
 	save_file();
+	include_words = parse_includes(current_file);
+	update_autocomplete_dictionary();
 	exit;
 }
 
@@ -212,6 +214,8 @@ if (keyboard_check(vk_control) && keyboard_check(vk_shift) && _key == ord("Z")){
 }
 
 if (_key == vk_left){
+	autocomplete_popup = false;
+	
 	if (multi_cursor_active){
 		apply_to_all_cursors(function(){
 			if (current_char > 0) current_char--;
@@ -224,6 +228,8 @@ if (_key == vk_left){
 }
 
 if (_key == vk_right){
+	autocomplete_popup = false;
+	
 	if (multi_cursor_active){
 		apply_to_all_cursors(function(){
 			if (current_char < string_length(lines[current_line])) current_char++;

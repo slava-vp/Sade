@@ -113,6 +113,8 @@ autocomplete_max = 5;
 cursors = [];
 multi_cursor_active = false;
 
+include_words = [];
+
 add_cursor = function(_line, _char){
 	for(var i = 0; i < array_length(cursors); i++){
 		if (cursors[i].line == _line && cursors[i].char == _char){
@@ -279,16 +281,12 @@ insert_snippet = function(_snippet_text){
 update_autocomplete_dictionary = function(){
 	autocomplete_words = [];
 	
-	if (!is_undefined(global.Keywords)){
-		for(var i = 0; i < array_length(global.Keywords); i++){
-			array_push(autocomplete_words, global.Keywords[i]);
-		}
+	for(var i = 0; i < array_length(global.Keywords); i++){
+		array_push(autocomplete_words, global.Keywords[i]);
 	}
 	
-	if (!is_undefined(global.Functions)){
-		for(var i = 0; i < array_length(global.Functions); i++){
-			array_push(autocomplete_words, global.Functions[i]);
-		}
+	for(var i = 0; i < array_length(global.Functions); i++){
+		array_push(autocomplete_words, global.Functions[i]);
 	}
 	
 	for(var i = 0; i < lines_count; i++){
@@ -325,6 +323,17 @@ update_autocomplete_dictionary = function(){
 			}
 			if (!_found) array_push(autocomplete_words, _word);
 		}
+	}
+	
+	for(var i = 0; i < array_length(include_words); i++){
+		var _found = false;
+		for (var k = 0; k < array_length(autocomplete_words); k++){
+			if (string_lower(autocomplete_words[k]) == string_lower(include_words[i])){
+				_found = true;
+				break;
+			}
+		}
+		if (!_found) array_push(autocomplete_words, include_words[i]);
 	}
 }
 
@@ -484,6 +493,83 @@ apply_autocomplete = function(){
 	
 	autocomplete_popup = false;
 	surface_redraw_line();
+}
+
+parse_includes = function(_base_path){
+	var _words = [];
+	var _scanned = ds_list_create();
+	
+	scan_includes_recursive(_base_path, _words, _scanned);
+	
+	ds_list_destroy(_scanned);
+	return _words;
+}
+
+scan_includes_recursive = function(_file_path, _words_list, _scanned_list){
+	if (ds_list_find_index(_scanned_list, _file_path) != -1) return;
+	ds_list_add(_scanned_list, _file_path);
+	
+	if (!file_exists(_file_path)) return;
+	
+	var _dir = filename_path(_file_path);
+	if (_dir == "") _dir = working_directory;
+	
+	var _file = file_text_open_read(_file_path);
+	
+	while (!file_text_eof(_file)){
+		var _line = file_text_read_string(_file);
+		file_text_readln(_file);
+		
+		_line = string_replace_all(_line, "\r", "");
+		_line = string_replace_all(_line, "\n", "");
+		
+		var _trimmed = string_trim(_line);
+		
+		if (string_pos("#include", _trimmed) == 1){
+			var _inc_path = string_trim(string_copy(_trimmed, 9, string_length(_trimmed) - 8));
+			
+			if (string_char_at(_inc_path, 1) == "'" || string_char_at(_inc_path, 1) == "\""){
+				_inc_path = string_copy(_inc_path, 2, string_length(_inc_path) - 2);
+			}
+			
+			var _full_inc = _dir + "/" + _inc_path;
+			scan_includes_recursive(_full_inc, _words_list, _scanned_list);
+		}
+		
+		var _word = "";
+		for (var i = 1; i <= string_length(_line); i++){
+			var _ch = string_char_at(_line, i);
+			if ((_ch >= "a" && _ch <= "z") || (_ch >= "A" && _ch <= "Z") || 
+				(_ch >= "0" && _ch <= "9") || _ch == "_"){
+				_word += _ch;
+			} else {
+				if (_word != "" && string_length(_word) > 1){
+					var _found = false;
+					for (var j = 0; j < array_length(_words_list); j++){
+						if (string_lower(_words_list[j]) == string_lower(_word)){
+							_found = true;
+							break;
+						}
+					}
+					if (!_found) array_push(_words_list, _word);
+				}
+				_word = "";
+			}
+		}
+		
+		if (_word != "" && string_length(_word) > 1){
+			var _found = false;
+			for (var j = 0; j < array_length(_words_list); j++){
+				if (string_lower(_words_list[j]) == string_lower(_word)){
+					_found = true;
+					break;
+				}
+			}
+			if (!_found) array_push(_words_list, _word);
+		}
+	}
+	
+	file_text_close(_file);
 }
 
 find_word_start = function(){
@@ -808,9 +894,10 @@ load_file = function(_path){
 	redo_stack = [];
 	save_undo_state();
 	
-	update_autocomplete_dictionary();
-	
 	window.max_scroll = max(0, lines_count - lines_max_draw + 1);
+	
+	include_words = parse_includes(_path);
+	update_autocomplete_dictionary();
 }
 
 save_file = function(){

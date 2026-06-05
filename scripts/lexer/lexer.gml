@@ -61,7 +61,7 @@ function lexer(_str, _show_output = true, _just_words = false, _show_errors = tr
 	
 	
 	str = _str;
-	var _spaces = ["lexerpasteherestring", "|", "(", ")", "{", "}", "[", "]", ";", ":", "\"", "'", ",", ".", "<", ">", "/", "\\", "?", "!", "@", "#", "$", "%", "^", "&", "*", "-", "+", "="];
+	var _spaces = ["lexerpasteherestring", "|", "(", ")", "{", "}", "[", "]", ";", ":", "\"", "'", ",", ".", "<", ">", "/", "\\", "?", "!", "@", "$", "%", "^", "&", "*", "-", "+", "="];
 	var _len = array_length(_spaces);
 	
 	for(var i = 0; i < _len; i++){

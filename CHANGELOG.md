@@ -12,6 +12,16 @@
 
 ### Fixed:
   - token_is_real 'for' cycle
+  - editor autocomplete
+  - crashes when deleting a file
+  - crashes when inserting and renaming a file
+  - inserting a file did not update the directory contents
+  - extension of the generated code file (from .sade to .sadel)
+
+### Other:
+  - lexer now ignores the "#" symbol
+  - the context menu, called by right-clicking in the file manager, appears next to the cursor
+  - compilation settings are now a structure and can be changed from code
 
 ## v0.0.6 (06.04.2026)
 
