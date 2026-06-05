@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.0.7 (06.05.2026)
+
+### Added:
+  - preprocessor
+  - - #include
+  - - #include once
+  - - #set
+  - - - auto_include_once on/off
+  - - - unknown_is_zero on/off
+
+### Fixed:
+  - token_is_real 'for' cycle
+
 ## v0.0.6 (06.04.2026)
 
 ### Added:

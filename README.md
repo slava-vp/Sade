@@ -2,7 +2,7 @@
 A project that one person is developing because he is bored.
 
 ## Version
-v0.0.6
+v0.0.7
 
 ## What can it do?
 ```

@@ -1,4 +1,7 @@
-#macro USE_0_AS_THE_DEFAULT_VALUE_FOR_VARIABLES true
+global.Settings = {
+	"use_0_as_default": true,
+	"use_auto_include_once": true,
+};
 
 global.projects_dir = "projects/";
 

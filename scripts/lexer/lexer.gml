@@ -422,11 +422,13 @@ function lexer(_str, _show_output = true, _just_words = false, _show_errors = tr
 					}else
 					if (token_is_value(_token_value)){
 						_token_id = tokenID.Value;
-					}else{
+					}else if (token_is_variable(_token_value)){
 						_token_id = tokenID.Variable;
 						
 						if (_nt == "(")
 							_token_id = tokenID.Function;
+					}else{
+						error($"Unknown token: {_token_value}", errorType.CRITICAL);
 					}
 					
 					break;

@@ -111,7 +111,7 @@ function VMachine(_bytecode){
 				}
 				
 				if (!token_is_value(_val)){
-					if (USE_0_AS_THE_DEFAULT_VALUE_FOR_VARIABLES){
+					if (global.Settings.use_0_as_default){
 						error($"The variable '{_val}' was not created prior to use.\nThe default value '0' is used.", errorType.WARNING);
 						
 						return 0;

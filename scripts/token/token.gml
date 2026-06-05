@@ -62,7 +62,7 @@ function token_is_real(_tok, _return_firse = false){
 	var _digits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
 	var _len_2 = array_length(_digits);
 	
-	for(var i = 1; i < (_return_firse == false ? _len : 3); i++){
+	for(var i = 1; i < (_return_firse == false ? _len : 2); i++){
 		for(var j = 0; j < _len_2; j++){
 			if (string_char_at(_tok, i) != _digits[j]) return false;
 		}
