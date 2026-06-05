@@ -63,20 +63,22 @@ for(i=10 in 100 step 5){
 ```
 ## Preprocessor
 - #include 'filename'
-- - Allows you to include code files in the main file
+  - Allows you to include code files in the main file
 - #include once
-- - Prevents unnecessary file inclusion
+  - Prevents unnecessary file inclusion
 - #set
-- - auto_include_once (on/off)
-  - - Allows you to automatically enable re-inclusion protection for ALL FILES.
-- - unknown_is_zero (on/off)
-  - - When attempting to access an unknown variable, 0 will be used
+  - auto_include_once (on/off)
+    - Allows you to automatically enable re-inclusion protection for ALL FILES.
+  - unknown_is_zero (on/off)
+    - When attempting to access an unknown variable, 0 will be used
 
 ## We have our own code editor!
 > is in the early stages of development
 
-Allows you to write code conveniently and work with directories and project files.
-There is also a console with program output.
+- **Project** management with multiple files
+- **Built-in** console for program output
+- **Snippets** — quickly insert common constructs ('func', 'for', 'if', 'var', etc.)
+- **Autocomplete** — suggests variables, functions, and keywords as you type
 
 ## Installation
 1. Clone the repository
