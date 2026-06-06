@@ -454,15 +454,11 @@ function VMachine(_bytecode){
 				var _index = get_value(array_pop(stack));
 				
 				var _arr = array_pop(stack);
-				
-				var _alen = array_length(_arr);
-				if (_alen > 0){
-					_index = _index % _alen;
-					if (_index < 0) _index += _alen;
-				}
 	
-				if (_index >= _alen){
-					array_resize(_arr, _index + 1);
+				if (_index >= array_length(_arr)){
+					while(array_length(_arr) <= _index){
+						array_push(_arr, 0);
+					}
 				}
 	
 				_arr[_index] = _value;
