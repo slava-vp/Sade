@@ -67,18 +67,6 @@ if (show_tooltip && tooltip_text != ""){
 	draw_text(_tx + _tp, _ty + _tp, tooltip_text);
 }
 
-if (max_scroll > 0){
-	var _vis_h = panel_surface_height;
-	var _total_h = max_scroll + _vis_h;
-	var _bar_h = max(10, _vis_h * (_vis_h / _total_h));
-	var _bar_y = _cy + 25 + (scroll_offset / max_scroll) * (_vis_h - _bar_h);
-	
-	draw_set_color(c_gray);
-	draw_rectangle(_cx + _cw - 8, _cy + 25, _cx + _cw - 3, _cy + 25 + _vis_h, false);
-	draw_set_color(c_white);
-	draw_rectangle(_cx + _cw - 8, _bar_y, _cx + _cw - 3, _bar_y + _bar_h, false);
-}
-
 if (show_context_menu){
 	var _mh = array_length(context_menu_items) * context_menu_item_height + 4;
 	var _mx = context_menu_x;

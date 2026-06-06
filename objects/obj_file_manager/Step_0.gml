@@ -28,16 +28,21 @@ if (mouse_check_button(mb_left)){
 	window.end_resize();
 }
 
-if (window.handle_scroll(mouse_x, mouse_y)){
-	surface_needs_update = true;
-}
-
 if (show_context_menu && mouse_check_button_pressed(mb_left)){
 	var _mw = context_menu_width;
 	var _mh = array_length(context_menu_items) * context_menu_item_height + 4;
 	if (!point_in_rectangle(mouse_x, mouse_y, context_menu_x, context_menu_y, context_menu_x + _mw, context_menu_y + _mh)){
 		show_context_menu = false;
 	}
+}
+if ((mouse_wheel_down() || mouse_wheel_up()) && window.contains_point(mouse_x, mouse_y)){
+	scroll_offset = clamp(scroll_offset + (mouse_wheel_down() - mouse_wheel_up()) * scroll_speed, 0, max_scroll);
+	window.scroll_offset = scroll_offset;
+	surface_needs_update = true;
+}
+if (window.handle_scroll(mouse_x, mouse_y)){
+	scroll_offset = window.scroll_offset;
+	surface_needs_update = true;
 }
 
 if (pending_conflict_menu){

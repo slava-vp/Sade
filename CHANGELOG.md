@@ -11,13 +11,16 @@
 
 ### Fixed:
   - multidimensional arrays
+  - numbers in multidimensional arrays were strings
   - negative numbers now work correctly
   - negative step in for loops
   - unary minus detection in lexer
   - get_value for numeric strings
   - token_is_* utility functions
-  - Incorrect build of code for launch
-  - The missing //= operator
+  - incorrect build of code for launch
+  - the missing //= operator
+  - double-draw the scrollbar in File Manager
+  - scrolling in the file manager
 
 ## v0.0.7 (06.05.2026)
 

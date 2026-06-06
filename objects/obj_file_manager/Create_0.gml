@@ -5,7 +5,6 @@ window.can_resize = false;
 window.colors.bg = c_black;
 window.colors.title_bg = c_dkgray;
 window.has_scrollbar = true;
-window.scrollbar_step = 20;
 
 window.add_button("< Back", function(){
 	if (nav_position > 0){
@@ -69,7 +68,6 @@ nav_history = [];
 nav_position = 0;
 
 scroll_offset = 0;
-scroll_speed = 20;
 max_scroll = 0;
 
 tooltip_text = "";
@@ -99,10 +97,13 @@ panel_surface_height = 0;
 surface_needs_update = true;
 
 btn_size = 48;
-btn_padding = 10;
-btn_label_height = 20;
+btn_padding = 32;
+btn_label_height = 10;
 btn_row_height = btn_size + btn_label_height + btn_padding;
 btn_start_x = btn_padding;
+
+window.scrollbar_step = 10;
+scroll_speed = 10;
 
 context_clicked_path = "";
 context_clicked_type = "";
@@ -133,7 +134,6 @@ ensure_panel_surface = function(){
 
 redraw_panel_surface = function(){
 	ensure_panel_surface();
-	
 	cached_buttons = [];
 	
 	surface_set_target(panel_surface);
@@ -203,8 +203,9 @@ redraw_panel_surface = function(){
 		draw_set_halign(fa_center);
 		draw_set_valign(fa_top);
 		var _label = _name;
-		if (string_length(_label) > 4){
-			_label = string_copy(_label, 1, 4) + ".";
+		var _max_label_chars = floor(btn_size / string_width("A"));
+		if (string_length(_label) > _max_label_chars){
+			_label = string_copy(_label, 1, _max_label_chars) + ".";
 		}
 		
 		draw_text(_bx + btn_size / 2, _by + btn_size + 2, _label);
@@ -213,9 +214,11 @@ redraw_panel_surface = function(){
 	var _total_rows = ceil(_len / _max_cols);
 	var _total_height = _total_rows * btn_row_height;
 	max_scroll = max(0, _total_height - panel_surface_height);
+	window.max_scroll = max_scroll;
 	
 	if (scroll_offset > max_scroll) scroll_offset = max_scroll;
 	if (scroll_offset < 0) scroll_offset = 0;
+	window.scroll_offset = scroll_offset;
 	
 	surface_reset_target();
 	surface_needs_update = false;

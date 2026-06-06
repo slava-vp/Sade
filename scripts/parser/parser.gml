@@ -1,6 +1,7 @@
 function parser(_tokens, _show_output = false){
 	parse_error = function(_msg, _type = errorType.CRITICAL){
-		var _line = (curr < len) ? tokens[curr][$ "line"] : "?";
+		var _line = ((curr < len) ? tokens[curr][$ "line"] : "?");
+		
 		error(_msg, _type, _line);
 	}
 

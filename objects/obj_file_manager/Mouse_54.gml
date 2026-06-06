@@ -4,10 +4,16 @@ if (mouse_y >= _panel_top && mouse_y < _panel_top + window.height){
 	var _clicked_child = undefined;
 	var _clicked_path = "";
 	
+	var _cx = window.get_content_x();
+	var _cy = window.get_content_y();
+	
 	for(var i = 0; i < array_length(cached_buttons); i++){
 		var _btn = cached_buttons[i];
-		var _abs_x = window.get_content_x() + _btn.x;
-		var _abs_y = window.get_content_y() + 25 + _btn.y;
+		var _abs_x = _cx + _btn.x;
+		var _abs_y = _cy + 25 + _btn.y;
+		
+		if (_abs_y + _btn.h < _cy + 25) continue;
+		if (_abs_y > _cy + 25 + panel_surface_height) continue;
 		
 		if (point_in_rectangle(mouse_x, mouse_y, _abs_x, _abs_y, _abs_x + _btn.w, _abs_y + _btn.h)){
 			_clicked_child = _btn.child;
