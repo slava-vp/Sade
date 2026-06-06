@@ -942,7 +942,7 @@ function parser(_tokens, _show_output = false){
 						break;
 					}
 					
-					if (_next_val == "=" || _next_val == "%=" || _next_val == "+=" || _next_val == "-=" || _next_val == "*=" || _next_val == "/=" || _next_val == "^=" || _next_val == "["){
+					if (_next_val == "=" || _next_val == "%=" || _next_val == "+=" || _next_val == "-=" || _next_val == "*=" || _next_val == "/=" || _next_val == "//=" || _next_val == "^=" || _next_val == "["){
 						parse_assignment();
 						
 						break;

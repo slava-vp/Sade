@@ -10,6 +10,7 @@
   - get_value for numeric strings
   - token_is_* utility functions
   - Incorrect build of code for launch
+  - The missing //= operator
 
 ## v0.0.7 (06.05.2026)
 
