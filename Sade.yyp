@@ -30,7 +30,6 @@
     {"id":{"name":"obj_projects","path":"objects/obj_projects/obj_projects.yy",},},
     {"id":{"name":"obj_text_editor","path":"objects/obj_text_editor/obj_text_editor.yy",},},
     {"id":{"name":"Room1","path":"rooms/Room1/Room1.yy",},},
-    {"id":{"name":"Checker","path":"scripts/Checker/Checker.yy",},},
     {"id":{"name":"DepthList","path":"scripts/DepthList/DepthList.yy",},},
     {"id":{"name":"ENV","path":"scripts/ENV/ENV.yy",},},
     {"id":{"name":"error","path":"scripts/error/error.yy",},},

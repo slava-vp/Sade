@@ -12,8 +12,6 @@ function run(_code){
 		try{
 			var _tokens = lexer(_code);
 			
-			if (!checker(_tokens, _code)) return;
-			
 			var _bytecode = parser(_tokens, true);
 			VMachine(_bytecode);
 		}catch(_error){

@@ -346,6 +346,11 @@ function parser(_tokens, _show_output = false){
 	
 		switch(_id){
 			case tokenID.Value:
+				var _val = get_token_val();
+				if (token_is_real(_val)){
+					_val = real(_val);
+				}
+				
 				array_push(bytecode, [opCode.PUSH, _val]);
 				next();
 				return;
@@ -766,46 +771,46 @@ function parser(_tokens, _show_output = false){
 				array_push(bytecode, [opCode.LOAD, _last_idx]);
 				parse_expression();
 				array_push(bytecode, [opCode.ARRAY_SET]);
-				
+	
 				for(var i = array_length(_indices) - 2; i >= 0; i--){
 					var _tmp = $"__tmp_{label_create()}_";
+					array_push(_indices, _tmp);
+		
 					array_push(bytecode, [opCode.STORE, _tmp]);
 					array_push(bytecode, [opCode.LOAD, _name]);
-					
+		
 					for(var j = 0; j < i; j++){
 						array_push(bytecode, [opCode.LOAD, _indices[j]]);
 						array_push(bytecode, [opCode.ARRAY_GET]);
 					}
-					
+		
 					array_push(bytecode, [opCode.LOAD, _indices[i]]);
 					array_push(bytecode, [opCode.LOAD, _tmp]);
 					array_push(bytecode, [opCode.ARRAY_SET]);
 				}
-				
+	
 				array_push(bytecode, [opCode.STORE, _name]);
-			
 			}else if (_op == "+=" || _op == "-=" || _op == "*=" || _op == "/=" || _op == "//=" || _op == "^="){
 				array_push(bytecode, [opCode.DUP]);
 				array_push(bytecode, [opCode.LOAD, _last_idx]);
 				array_push(bytecode, [opCode.ARRAY_GET]);
-				
+	
 				next();
 				parse_expression();
-				
+	
 				if (_op == "+=") array_push(bytecode, [opCode.ADD]);
 				else if (_op == "-=") array_push(bytecode, [opCode.SUB]);
 				else if (_op == "*=") array_push(bytecode, [opCode.MUL]);
 				else if (_op == "/=") array_push(bytecode, [opCode.DIV]);
 				else if (_op == "//=") array_push(bytecode, [opCode.IDIV]);
 				else if (_op == "^=") array_push(bytecode, [opCode.POW]);
-				
+	
 				array_push(bytecode, [opCode.STORE, "__temp_val__"]);
 				array_push(bytecode, [opCode.LOAD, _last_idx]);
 				array_push(bytecode, [opCode.LOAD, "__temp_val__"]);
 				array_push(bytecode, [opCode.ARRAY_SET]);
-			
-			}else{
-				parse_error($"Unknown assignment operator: {_op}", errorType.CRITICAL);
+	
+				array_push(_indices, "__temp_val__");
 			}
 			
 			for(var i = 0; i < array_length(_indices); i++){
