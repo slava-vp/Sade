@@ -2,6 +2,13 @@
 
 ## v0.0.8 (06.06.2026)
 
+### Added:
+  - internal error log
+    - #set internal_error_log (on/off)
+      - wraps code execution in a try/catch for internal error logging
+  - wrap for console
+  - cyclic processing of arrays
+
 ### Fixed:
   - multidimensional arrays
   - negative numbers now work correctly

@@ -1,5 +1,5 @@
 ![Sade](https://img.shields.io/badge/sade-v0.0.8-blue)
-![Editor](https://img.shields.io/badge/editor-v0.0.2-blue)
+![Editor](https://img.shields.io/badge/editor-v0.0.3-blue)
 ![Platform](https://img.shields.io/badge/platform-GameMaker%20LTS2026-green)
 ![Status](https://img.shields.io/badge/status-alpha-orange)
 ![License](https://img.shields.io/badge/license-WTFPL-black)
@@ -28,6 +28,12 @@ var g [] // array
 
 a.cat('!') // now a is 'Hello World!'
 g.push(10100111)
+
+// Cyclic processing of arrays
+var na [0, 1, 2, 3, 4]
+
+print(na[-1]) // output: 4
+print(na[6]) // output: 1
 ```
 ### Creating user-defined functions
 ```

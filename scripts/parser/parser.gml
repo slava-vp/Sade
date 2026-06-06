@@ -1,4 +1,9 @@
 function parser(_tokens, _show_output = false){
+	parse_error = function(_msg, _type = errorType.CRITICAL){
+		var _line = (curr < len) ? tokens[curr][$ "line"] : "?";
+		error(_msg, _type, _line);
+	}
+
 	tokens = _tokens;
 	bytecode = [];
 	len = array_length(tokens);
@@ -30,14 +35,14 @@ function parser(_tokens, _show_output = false){
 		next();
 		
 		if (get_token_val() != "(")
-			error("Expected '(' after for", errorType.CRITICAL);
+			parse_error("Expected '(' after for", errorType.CRITICAL);
 		
 		next();
 		
 		var _var_name = get_token_val();
 		
 		if (get_token_id() != tokenID.Variable)
-			error("Expected variable name after for", errorType.CRITICAL);
+			parse_error("Expected variable name after for", errorType.CRITICAL);
 		
 		next();
 		
@@ -86,7 +91,7 @@ function parser(_tokens, _show_output = false){
 				}
 				
 				if (get_token_val() != ")")
-					error("Expected ')' after for condition", errorType.CRITICAL);
+					parse_error("Expected ')' after for condition", errorType.CRITICAL);
 				
 				next();
 				
@@ -140,7 +145,7 @@ function parser(_tokens, _show_output = false){
 				}
 				
 				if (get_token_val() != ")")
-					error("Expected ')' after for condition", errorType.CRITICAL);
+					parse_error("Expected ')' after for condition", errorType.CRITICAL);
 				
 				next();
 				
@@ -180,7 +185,7 @@ function parser(_tokens, _show_output = false){
 			array_push(bytecode, [opCode.STORE, _var_name]);
 			
 			if (get_token_val() != "in")
-				error("Expected 'in' after start value", errorType.CRITICAL);
+				parse_error("Expected 'in' after start value", errorType.CRITICAL);
 			
 			next();
 			
@@ -204,7 +209,7 @@ function parser(_tokens, _show_output = false){
 			}
 			
 			if (get_token_val() != ")")
-				error("Expected ')' after for condition", errorType.CRITICAL);
+				parse_error("Expected ')' after for condition", errorType.CRITICAL);
 			
 			next();
 			
@@ -230,7 +235,7 @@ function parser(_tokens, _show_output = false){
 			
 			array_push(bytecode, [opCode.DELETE, _end_tmp]);
 		}else
-			error("Expected 'in' or '=' after variable in for", errorType.CRITICAL);
+			parse_error("Expected 'in' or '=' after variable in for", errorType.CRITICAL);
 		
 		current_break = _prev_break;
 		current_continue = _prev_continue;
@@ -275,7 +280,7 @@ function parser(_tokens, _show_output = false){
 	
 	parse_block = function(){
 		if (get_token_val() != "{")
-			error("Expected '{'", errorType.CRITICAL);
+			parse_error("Expected '{'", errorType.CRITICAL);
 		
 		next();
 		
@@ -284,7 +289,7 @@ function parser(_tokens, _show_output = false){
 		}
 		
 		if (get_token_val() != "}")
-			error("Expected '}'", errorType.CRITICAL);
+			parse_error("Expected '}'", errorType.CRITICAL);
 		
 		next();
 	}
@@ -309,7 +314,7 @@ function parser(_tokens, _show_output = false){
 		next();
 		
 		if (get_token_val() != "(")
-			error("Expected '(' after function name", errorType.CRITICAL);
+			parse_error("Expected '(' after function name", errorType.CRITICAL);
 		
 		next();
 		
@@ -328,7 +333,7 @@ function parser(_tokens, _show_output = false){
 			}
 		
 		if (get_token_val() != ")")
-			error("Expected ')'", errorType.CRITICAL);
+			parse_error("Expected ')'", errorType.CRITICAL);
 		
 		next();
 		
@@ -371,7 +376,7 @@ function parser(_tokens, _show_output = false){
 					parse_expression();
 				
 					if (get_token_val() != "]")
-						error("Expected ']'", errorType.CRITICAL);
+						parse_error("Expected ']'", errorType.CRITICAL);
 				
 					next();
 					array_push(bytecode, [opCode.ARRAY_GET]);
@@ -384,7 +389,7 @@ function parser(_tokens, _show_output = false){
 					next();
 				
 					if (get_token_val() != "(")
-						error("Expected '(' after method name", errorType.CRITICAL);
+						parse_error("Expected '(' after method name", errorType.CRITICAL);
 				
 					next();
 				
@@ -402,7 +407,7 @@ function parser(_tokens, _show_output = false){
 					}
 				
 					if (get_token_val() != ")")
-						error("Expected ')'", errorType.CRITICAL);
+						parse_error("Expected ')'", errorType.CRITICAL);
 				
 					next();
 					array_push(bytecode, [opCode.METHOD, _method, _arg_count]);
@@ -446,7 +451,7 @@ function parser(_tokens, _show_output = false){
 					}
 			
 				if (get_token_val() != "]")
-					error("Expected ']'", errorType.CRITICAL);
+					parse_error("Expected ']'", errorType.CRITICAL);
 			
 				next();
 				array_push(bytecode, [opCode.ARRAY_CREATE, _len]);
@@ -466,7 +471,7 @@ function parser(_tokens, _show_output = false){
 				parse_expression();
 			
 				if (get_token_val() != ")")
-					error("Expected ')'", errorType.CRITICAL);
+					parse_error("Expected ')'", errorType.CRITICAL);
 			
 				next();
 				return;
@@ -491,7 +496,7 @@ function parser(_tokens, _show_output = false){
 				return;
 		}
 	
-		error($"Unexpected token in expression: {_val}", errorType.CRITICAL);
+		parse_error($"Unexpected token in expression: {_val}", errorType.CRITICAL);
 	}
 	
 	parse_multiplication = function(){
@@ -603,7 +608,7 @@ function parser(_tokens, _show_output = false){
 		next();
 		
 		if (get_token_val() != "(")
-			error("Expected '(' after function name", errorType.CRITICAL);
+			parse_error("Expected '(' after function name", errorType.CRITICAL);
 		
 		next();
 		
@@ -621,7 +626,7 @@ function parser(_tokens, _show_output = false){
 			}
 		
 		if (get_token_val() != ")")
-			error("Expected ')' after condition", errorType.CRITICAL);
+			parse_error("Expected ')' after condition", errorType.CRITICAL);
 		
 		next();
 		
@@ -659,7 +664,7 @@ function parser(_tokens, _show_output = false){
 		next();
 		
 		if (get_token_val() != "(")
-			error("Expected '(' after function name", errorType.CRITICAL);
+			parse_error("Expected '(' after function name", errorType.CRITICAL);
 			
 		next();
 		
@@ -677,7 +682,7 @@ function parser(_tokens, _show_output = false){
 			}
 		
 		if (get_token_val() != ")")
-			error("Expected ')' after condition", errorType.CRITICAL);
+			parse_error("Expected ')' after condition", errorType.CRITICAL);
 		
 		next();
 		
@@ -688,14 +693,14 @@ function parser(_tokens, _show_output = false){
 		next();
 		
 		if (get_token_val() != "(")
-			error("Expected '(' after if", errorType.CRITICAL);
+			parse_error("Expected '(' after if", errorType.CRITICAL);
 		
 		next();
 		
 		parse_expression();
 		
 		if (get_token_val() != ")")
-			error("Expected ')' after condition", errorType.CRITICAL);
+			parse_error("Expected ')' after condition", errorType.CRITICAL);
 		
 		next();
 		
@@ -742,7 +747,7 @@ function parser(_tokens, _show_output = false){
 				array_push(bytecode, [opCode.STORE, _idx_tmp]);
 				
 				if (get_token_val() != "]"){
-					error("Expected ']'", errorType.CRITICAL);
+					parse_error("Expected ']'", errorType.CRITICAL);
 				}
 				
 				next();
@@ -800,7 +805,7 @@ function parser(_tokens, _show_output = false){
 				array_push(bytecode, [opCode.ARRAY_SET]);
 			
 			}else{
-				error($"Unknown assignment operator: {_op}", errorType.CRITICAL);
+				parse_error($"Unknown assignment operator: {_op}", errorType.CRITICAL);
 			}
 			
 			for(var i = 0; i < array_length(_indices); i++){

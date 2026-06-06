@@ -49,17 +49,17 @@ if (editor_mode == EditorMode.full_editor){
 	run_code = function(){
 		var _prep = Preprocessor(lines);
 		var _len = array_length(_prep);
-		
+	
 		var _code = "";
 		for(var i = 0; i < _len; i++){
-			_code += _prep[i] + " ";
+			_code += _prep[i] + "\n";
 		}
-		
+	
 		if (_code == ""){
 			console_log("No code to run");
 			return;
 		}
-		
+	
 		console_log("=== Running code ===");
 		run(_code);
 		console_log("=== Finished ===");

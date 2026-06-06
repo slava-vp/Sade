@@ -1,6 +1,7 @@
-function token(_id, _val) constructor{
+function token(_id, _val, _line) constructor{
 	id = _id;
 	val = _val;
+	line = _line;
 }
 
 enum tokenID{

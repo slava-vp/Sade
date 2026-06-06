@@ -431,23 +431,38 @@ function VMachine(_bytecode){
 				break;
 			
 			case opCode.ARRAY_GET:
-				var _index = array_pop(stack);
-				
-				var _arr = array_pop(stack);
-				
-				array_push(stack, _arr[_index]);
-				
-				break;
-			
-			case opCode.ARRAY_SET:
-				var _value = get_value(array_pop(stack));
-			
 				var _index = get_value(array_pop(stack));
 				
 				var _arr = array_pop(stack);
 	
-				if (_index >= array_length(_arr)){
-					error("Attempt to go beyond the bounds of an array", errorType.CRITICAL);
+				if (array_length(_arr) == 0){
+					error("Cannot access element of empty array");
+					break;
+				}
+	
+				_index = _index % array_length(_arr);
+				
+				if (_index < 0) _index += array_length(_arr);
+	
+				array_push(stack, _arr[_index]);
+				
+				break;
+
+			case opCode.ARRAY_SET:
+				var _value = get_value(array_pop(stack));
+				
+				var _index = get_value(array_pop(stack));
+				
+				var _arr = array_pop(stack);
+				
+				var _alen = array_length(_arr);
+				if (_alen > 0){
+					_index = _index % _alen;
+					if (_index < 0) _index += _alen;
+				}
+	
+				if (_index >= _alen){
+					array_resize(_arr, _index + 1);
 				}
 	
 				_arr[_index] = _value;

@@ -36,4 +36,6 @@ ds_map_add(_map, "setaioon", "#set auto_include_once on");
 ds_map_add(_map, "setaiooff", "#set auto_include_once off");
 ds_map_add(_map, "setuizon", "#set unknown_is_zero on");
 ds_map_add(_map, "setuizooff", "#set unknown_is_zero off");
+ds_map_add(_map, "setielon", "#set internal_error_log on");
+ds_map_add(_map, "setieloff", "#set internal_error_log off");
 ds_map_add_map(global.snippets, "set", _map);

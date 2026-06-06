@@ -82,6 +82,14 @@ function Preprocessor(_lines, _first = true){
 			global.Settings.use_0_as_default = false;
 			continue;
 		}
+		if (string_pos("#set internal_error_log on", _line)){
+			global.Settings.internal_error_log = true;
+			continue;
+		}
+		if (string_pos("#set internal_error_log off", _line)){
+			global.Settings.internal_error_log = false;
+			continue;
+		}
 		
 		array_push(_output, _line);
 	}

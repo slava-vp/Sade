@@ -4,10 +4,10 @@ function lexer(_str, _show_output = true, _just_words = false, _show_errors = tr
 	just_words = _just_words;
 	show_errors = _show_errors;
 	
-	lexer_error = function(_error, _harmless = true){
+	lexer_error = function(_error, _line, _col, _harmless = true){
 		if (!show_errors) exit;
 		
-		var _text = $"LEXER: {_error}";
+		var _text = $"LEXER: [{_line}:{_col}] {_error}";
 		
 		error(_text, (!_harmless ? errorType.ERROR : errorType.INFO));
 		
@@ -17,19 +17,17 @@ function lexer(_str, _show_output = true, _just_words = false, _show_errors = tr
 	
 	if (_show_output){
 		show_debug_message("\nLexer Start ===========");
-		
-		show_debug_message($"string1: {_str}");
+		show_debug_message($"source: {_str}");
 	}
 	
 	strings = array_create(10, "");
 	strings_count = 0;
 	
 	var _str_len = string_length(_str);
-	
 	var _in_string = false;
 	var _string_start = -1;
-	
 	var _ch;
+	
 	for(var i = 1; i < _str_len; i++){
 		_ch = string_char_at(_str, i);
 		
@@ -56,19 +54,18 @@ function lexer(_str, _show_output = true, _just_words = false, _show_errors = tr
 	}
 	
 	if (_in_string == true){
-		lexer_error("Unexpected end of line", false);
+		lexer_error("Unexpected end of line", 1, _str_len, false);
 	}
 	
-	
 	str = _str;
-	var _spaces = ["lexerpasteherestring", "|", "(", ")", "{", "}", "[", "]", ";", ":", "\"", "'", ",", ".", "<", ">", "/", "\\", "?", "!", "@", "$", "%", "^", "&", "*", "-", "+", "="];
+	var _spaces = ["lexerpasteherestring", "\n", "|", "(", ")", "{", "}", "[", "]", ";", ":", "\"", "'", ",", ".", "<", ">", "/", "\\", "?", "!", "@", "$", "%", "^", "&", "*", "-", "+", "="];
 	var _len = array_length(_spaces);
 	
 	for(var i = 0; i < _len; i++){
 		str = string_replace_all(str, _spaces[i], $" {_spaces[i]} ");
 	}
 	
-	if (_show_output) show_debug_message($"string2:  {_str}");
+	if (_show_output) show_debug_message($"spaced: {str}");
 	lexer_stop = false;
 	
 	tokenizer = function(){
@@ -79,7 +76,7 @@ function lexer(_str, _show_output = true, _just_words = false, _show_errors = tr
 		
 		get_next_token = function(_nt = 1){
 			if (curr + _nt >= _len){
-				lexer_error("undefined next token");
+				lexer_error("undefined next token", 1, 1);
 				return "";
 			}
 			
@@ -87,24 +84,47 @@ function lexer(_str, _show_output = true, _just_words = false, _show_errors = tr
 		}
 		get_prev_token = function(_nt = 1){
 			if (curr - _nt < 0){
-				lexer_error("undefined prev token");
+				lexer_error("undefined prev token", 1, 1);
 				return "";
 			}
 			
 			return _words[curr - _nt];
 		}
 		
+		curr_line = 1;
+		curr_col = 1;
+		
 		var _token_id;
 		var _token_value;
 		curr = 0;
 		
+		var _line = 1;
+		var _col = 1;
+		
 		for(; curr < _len; curr++){
 			if (lexer_stop) exit;
-
 			
 			_token_id = -1;
 			_token_value = _words[curr];
+
+			if (_token_value == "" || _token_value == "\n"){
+				continue;
+			}
 			
+			if (_token_value == ""){
+				continue;
+			}
+				
+			var _token_len = string_length(_token_value);
+			for(var _k = 1; _k <= _token_len; _k++){
+				var _ch = string_char_at(_token_value, _k);
+				if (_ch == "\n"){
+					_line++;
+					_col = 1;
+				}else{
+					_col++;
+				}
+			}
 			var _nt = get_next_token();
 			
 			switch(_token_value){
@@ -122,7 +142,7 @@ function lexer(_str, _show_output = true, _just_words = false, _show_errors = tr
 						_token_id = tokenID.Operator;
 						_token_value = "||";
 						
-						array_delete(_words, curr + 1, -1);
+						array_delete(_words, curr + 1, 1);
 						_len--;
 					}
 					
@@ -186,43 +206,28 @@ function lexer(_str, _show_output = true, _just_words = false, _show_errors = tr
 				case "\'":
 					_token_id = tokenID.Quotes;
 					
-					if (_nt == "="){
-						_token_id = tokenID.Binary;
-						_token_value = "/=";
-						
-						array_delete(_words, curr + 1, -1);
-						_len--;
-					}
-					
 					break;
 					
 				case "-":
 					_token_id = tokenID.Minus;
 					
-					var _pt = get_prev_token();
-					
 					if (_nt == "="){
 						_token_id = tokenID.Binary;
 						_token_value = "-=";
 						
-						array_delete(_words, curr + 1, -1);
+						array_delete(_words, curr + 1, 1);
 						_len--;
-					}else
-					if (_nt == "-"){
+					}else if (_nt == "-"){
 						_token_id = tokenID.Unar;
 						_token_value = "--";
 						
-						array_delete(_words, curr + 1, -1);
+						array_delete(_words, curr + 1, 1);
 						_len--;
 					}else{
-						show_debug_message($"BEFORE: _token_id={_token_id}");
 						if (token_is_value(_nt) || token_is_variable(_nt)){
 							_token_id = tokenID.Unar;
-							show_debug_message($"AFTER: _token_id={_token_id}");
 						}
 					}
-					
-					 show_debug_message($"LEXER -: nt={_nt}, id={_token_id}, val={_token_value}");
 					
 					break;
 					
@@ -233,7 +238,7 @@ function lexer(_str, _show_output = true, _just_words = false, _show_errors = tr
 						_token_id = tokenID.Binary;
 						_token_value = "+=";
 						
-						array_delete(_words, curr + 1, -1);
+						array_delete(_words, curr + 1, 1);
 						_len--;
 					}
 					
@@ -241,7 +246,7 @@ function lexer(_str, _show_output = true, _just_words = false, _show_errors = tr
 						_token_id = tokenID.Unar;
 						_token_value = "++";
 						
-						array_delete(_words, curr + 1, -1);
+						array_delete(_words, curr + 1, 1);
 						_len--;
 					}
 					
@@ -254,7 +259,7 @@ function lexer(_str, _show_output = true, _just_words = false, _show_errors = tr
 						_token_id = tokenID.Operator;
 						_token_value = ">=";
 						
-						array_delete(_words, curr + 1, -1);
+						array_delete(_words, curr + 1, 1);
 						_len--;
 					}
 					
@@ -267,7 +272,7 @@ function lexer(_str, _show_output = true, _just_words = false, _show_errors = tr
 						_token_id = tokenID.Operator;
 						_token_value = "<=";
 						
-						array_delete(_words, curr + 1, -1);
+						array_delete(_words, curr + 1, 1);
 						_len--;
 					}
 					
@@ -280,7 +285,7 @@ function lexer(_str, _show_output = true, _just_words = false, _show_errors = tr
 						_token_id = tokenID.Binary;
 						_token_value = "^=";
 						
-						array_delete(_words, curr + 1, -1);
+						array_delete(_words, curr + 1, 1);
 						_len--;
 					}
 					
@@ -293,7 +298,7 @@ function lexer(_str, _show_output = true, _just_words = false, _show_errors = tr
 						_token_id = tokenID.Binary;
 						_token_value = "*=";
 						
-						array_delete(_words, curr + 1, -1);
+						array_delete(_words, curr + 1, 1);
 						_len--;
 					}
 					
@@ -301,14 +306,6 @@ function lexer(_str, _show_output = true, _just_words = false, _show_errors = tr
 					
 				case "%":
 					_token_id = tokenID.Percent;
-					
-					if (_nt == "="){
-						_token_id = tokenID.Operator;
-						_token_value = "%=";
-						
-						array_delete(_words, curr + 1, -1);
-						_len--;
-					}
 					
 					break;
 					
@@ -319,7 +316,7 @@ function lexer(_str, _show_output = true, _just_words = false, _show_errors = tr
 						_token_id = tokenID.Operator;
 						_token_value = "==";
 						
-						array_delete(_words, curr + 1, -1);
+						array_delete(_words, curr + 1, 1);
 						_len--;
 					}
 					
@@ -332,7 +329,7 @@ function lexer(_str, _show_output = true, _just_words = false, _show_errors = tr
 						_token_id = tokenID.Binary;
 						_token_value = "/=";
 						
-						array_delete(_words, curr + 1, -1);
+						array_delete(_words, curr + 1, 1);
 						_len--;
 					}
 					
@@ -345,7 +342,7 @@ function lexer(_str, _show_output = true, _just_words = false, _show_errors = tr
 							_token_value = "//=";
 						}
 						
-						array_delete(_words, curr + 1, -1);
+						array_delete(_words, curr + 1, 1);
 						_len--;
 					}
 					
@@ -364,17 +361,17 @@ function lexer(_str, _show_output = true, _just_words = false, _show_errors = tr
 				case "!":
 					_token_id = tokenID.Exclamation;
 					
-					var _pt = get_prev_token();
-					
 					if (_nt == "="){
-						_token_id = tokenID.Binary;
+						_token_id = tokenID.Operator;
 						_token_value = "!=";
 						
-						array_delete(_words, curr + 1, -1);
+						array_delete(_words, curr + 1, 1);
 						_len--;
-					}else
-					if (!token_is(_pt, global.Operator) && token_is_variable(_nt)){
-						_token_id = tokenID.Unar;
+					}else{
+						var _pt = get_prev_token();
+						if (!token_is(_pt, global.Operator) && token_is_variable(_nt)){
+							_token_id = tokenID.Unar;
+						}
 					}
 					
 					break;
@@ -391,7 +388,7 @@ function lexer(_str, _show_output = true, _just_words = false, _show_errors = tr
 						_token_id = tokenID.Operator;
 						_token_value = "&&";
 						
-						array_delete(_words, curr + 1, -1);
+						array_delete(_words, curr + 1, 1);
 						_len--;
 					}
 					
@@ -415,17 +412,13 @@ function lexer(_str, _show_output = true, _just_words = false, _show_errors = tr
 				default:
 					if (token_is(_token_value, global.Functions)){
 						_token_id = tokenID.Function;
-					}else
-					if (token_is(_token_value, global.Keywords)){
+					}else if (token_is(_token_value, global.Keywords)){
 						_token_id = tokenID.Keyword;
-					}else
-					if (token_is(_token_value, global.Operator)){
+					}else if (token_is(_token_value, global.Operator)){
 						_token_id = tokenID.Operator;
-					}else
-					if (token_is(_token_value, global.Unar)){
+					}else if (token_is(_token_value, global.Unar)){
 						_token_id = tokenID.Unar;
-					}else
-					if (token_is_value(_token_value)){
+					}else if (token_is_value(_token_value)){
 						_token_id = tokenID.Value;
 					}else if (token_is_variable(_token_value)){
 						_token_id = tokenID.Variable;
@@ -433,13 +426,13 @@ function lexer(_str, _show_output = true, _just_words = false, _show_errors = tr
 						if (_nt == "(")
 							_token_id = tokenID.Function;
 					}else{
-						error($"Unknown token: {_token_value}", errorType.CRITICAL);
+						throw($"Unknown token: {_token_value}");
 					}
 					
 					break;
 			}
 			
-			array_push(_tokens, new token(_token_id, _token_value));
+			array_push(_tokens, new token(_token_id, _token_value, _line));
 		}
 		
 		return _tokens;
@@ -449,18 +442,15 @@ function lexer(_str, _show_output = true, _just_words = false, _show_errors = tr
 	
 	if (_show_output){
 		show_debug_message(_tokens);
-		
 		show_debug_message("Lexer End ============\n");
 	}
 	
 	if (just_words){
 		var _words = [];
-		
 		var _tlen = array_length(_tokens);
 		for(var i = 0; i < _tlen; i++){
 			array_push(_words, _tokens[i][$ "val"]);
 		}
-		
 		return _words;
 	}
 	

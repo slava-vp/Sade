@@ -1,5 +1,5 @@
-#macro	SADE_LANG_VER "0.0.7"
-#macro	EDITOR_VER "0.0.2"
+#macro	SADE_LANG_VER "0.0.8"
+#macro	EDITOR_VER "0.0.3"
 
 enum EditorMode {
 	full_editor,
@@ -8,9 +8,22 @@ enum EditorMode {
 }
 
 function run(_code){
-	var _tokens = lexer(_code);
-	var _bytecode = parser(_tokens, true);
-	VMachine(_bytecode);
+	if (global.Settings.internal_error_log){
+		try{
+			var _tokens = lexer(_code);
+			
+			if (!checker(_tokens, _code)) return;
+			
+			var _bytecode = parser(_tokens, true);
+			VMachine(_bytecode);
+		}catch(_error){
+			console_log($"{_error.message}");
+		}
+	}else{
+		var _tokens = lexer(_code);
+		var _bytecode = parser(_tokens, true);
+		VMachine(_bytecode);
+	}
 }
 
 function console_log(_text){
