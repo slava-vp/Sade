@@ -92,6 +92,8 @@ function VMachine(_bytecode){
 	get_value = function(_val){
 		if (is_array(_val) || is_struct(_val)) return _val;
 		
+		if (is_numeric(_val)) return real(_val);
+		
 		if (string_length(string_digits(_val)) == string_length(_val) && _val != ""){
 				return real(_val);
 		}

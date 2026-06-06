@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.0.8 (06.06.2026)
+
+### Fixed:
+  - negative numbers now work correctly
+  - negative step in for loops
+  - unary minus detection in lexer
+  - get_value for numeric strings
+  - token_is_* utility functions
+
 ## v0.0.7 (06.05.2026)
 
 ### Added:

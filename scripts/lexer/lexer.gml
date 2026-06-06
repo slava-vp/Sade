@@ -214,10 +214,15 @@ function lexer(_str, _show_output = true, _just_words = false, _show_errors = tr
 						
 						array_delete(_words, curr + 1, -1);
 						_len--;
-					}else
-					if (!token_is(_pt, global.Operator) && token_is_variable(_nt)){
-						_token_id = tokenID.Unar;
+					}else{
+						show_debug_message($"BEFORE: _token_id={_token_id}");
+						if (token_is_value(_nt) || token_is_variable(_nt)){
+							_token_id = tokenID.Unar;
+							show_debug_message($"AFTER: _token_id={_token_id}");
+						}
 					}
+					
+					 show_debug_message($"LEXER -: nt={_nt}, id={_token_id}, val={_token_value}");
 					
 					break;
 					

@@ -59,13 +59,12 @@ function token_is(_tok, _is){
 
 function token_is_real(_tok, _return_firse = false){
 	var _len = string_length(_tok);
-	var _digits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
-	var _len_2 = array_length(_digits);
+	var _digits = "0123456789";
+	var _end = (_return_firse == false ? _len : 1);
 	
-	for(var i = 1; i < (_return_firse == false ? _len : 2); i++){
-		for(var j = 0; j < _len_2; j++){
-			if (string_char_at(_tok, i) != _digits[j]) return false;
-		}
+	for(var i = 1; i <= _end; i++){
+		var _ch = string_char_at(_tok, i);
+		if (string_pos(_ch, _digits) == 0) return false;
 	}
 	return true;
 }
@@ -74,29 +73,22 @@ function token_is_string(_tok){
 	var _ch1 = string_char_at(_tok, 1);
 	var _ch2 = string_char_at(_tok, string_length(_tok) + 1);
 	
-	var _tok1 = (_ch1 == "'" || _ch1 == "\"");
-	var _tok2 = (_ch2 == "'" || _ch2 == "\"");
-	
-	return (_tok1 && _tok2);
+	return (_ch1 == "'" && _ch2 == "'");
 }
 
 function token_is_variable(_tok){
-	var _first_is_digit = token_is_real(_tok, true);
-	
-	if (!_first_is_digit) return true;
+	if (token_is_real(_tok, true)) return false;
+	return true;
 }
 
 function token_is_value(_tok){
 	if (_tok == "") return false;
 	
 	var _is_string = token_is_string(_tok);
+	show_debug_message($"token_is_value({_tok}): _is_string={_is_string}");
 	
-	var _dig = string_digits(_tok);
-	
-	var _is_real = false;
-	if (string_length(_dig) == string_length(_tok)){
-		_is_real = is_real(real(_tok));
-	}
+	var _is_real = token_is_real(_tok);
+	show_debug_message($"token_is_value({_tok}): _is_real={_is_real}");
 	
 	return (_is_real || _is_string);
 }

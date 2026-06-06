@@ -1,4 +1,4 @@
-![Sade](https://img.shields.io/badge/sade-v0.0.7-blue)
+![Sade](https://img.shields.io/badge/sade-v0.0.8-blue)
 ![Editor](https://img.shields.io/badge/editor-v0.0.2-blue)
 ![Platform](https://img.shields.io/badge/platform-GameMaker%20LTS2026-green)
 ![Status](https://img.shields.io/badge/status-alpha-orange)
@@ -8,7 +8,7 @@
 Sade is an interpreted programming language inspired by C++, GML, and Python.
 
 ## Version
-v0.0.7
+v0.0.8
 
 ## Contents
 - [What can it do?](#what-can-it-do)

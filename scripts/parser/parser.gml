@@ -74,7 +74,14 @@ function parser(_tokens, _show_output = false){
 				var _step = 1;
 				if (get_token_val() == "step"){
 					next();
-					_step = real(get_token_val());
+					
+					var _sign = 1;
+					if (get_token_val() == "-"){
+						_sign = -1;
+						next();
+					}
+					
+					_step = real(get_token_val()) * _sign;
 					next();
 				}
 				
@@ -87,7 +94,8 @@ function parser(_tokens, _show_output = false){
 				
 				array_push(bytecode, [opCode.LOAD, _var_name]);
 				array_push(bytecode, [opCode.LOAD, _end_tmp]);
-				array_push(bytecode, [opCode.COMPARE, "<="]);
+				var _compare = (_step >= 0) ? "<=" : ">=";
+				array_push(bytecode, [opCode.COMPARE, _compare]);
 				array_push(bytecode, [opCode.JUMP_IF_FALSE, _label_end]);
 				
 				array_push(bytecode, [opCode.LABEL, _label_continue]);
@@ -120,7 +128,14 @@ function parser(_tokens, _show_output = false){
 				var _step = 1;
 				if (get_token_val() == "step"){
 					next();
-					_step = real(get_token_val());
+					
+					var _sign = 1;
+					if (get_token_val() == "-"){
+						_sign = -1;
+						next();
+					}
+					
+					_step = real(get_token_val()) * _sign;
 					next();
 				}
 				
@@ -133,7 +148,8 @@ function parser(_tokens, _show_output = false){
 				
 				array_push(bytecode, [opCode.LOAD, _idx_tmp]);
 				array_push(bytecode, [opCode.LOAD, _len_tmp]);
-				array_push(bytecode, [opCode.COMPARE, "<"]);
+				var _compare = (_step >= 0) ? "<=" : ">=";
+				array_push(bytecode, [opCode.COMPARE, _compare]);
 				array_push(bytecode, [opCode.JUMP_IF_FALSE, _label_end]);
 				
 				array_push(bytecode, [opCode.LOAD, _arr_tmp]);
@@ -176,8 +192,14 @@ function parser(_tokens, _show_output = false){
 			var _step = 1;
 			if (get_token_val() == "step"){
 				next();
-				_step = real(get_token_val());
-				_step = real(get_token_val());
+				
+				var _sign = 1;
+				if (get_token_val() == "-"){
+					_sign = -1;
+					next();
+				}
+				
+				_step = real(get_token_val()) * _sign;
 				next();
 			}
 			
@@ -190,7 +212,8 @@ function parser(_tokens, _show_output = false){
 			
 			array_push(bytecode, [opCode.LOAD, _var_name]);
 			array_push(bytecode, [opCode.LOAD, _end_tmp]);
-			array_push(bytecode, [opCode.COMPARE, "<="]);
+			var _compare = (_step >= 0) ? "<=" : ">=";
+			array_push(bytecode, [opCode.COMPARE, _compare]);
 			array_push(bytecode, [opCode.JUMP_IF_FALSE, _label_end]);
 			
 			array_push(bytecode, [opCode.LABEL, _label_continue]);
@@ -313,166 +336,162 @@ function parser(_tokens, _show_output = false){
 	}
 	
 	parse_primary = function(){
-		
-		switch(get_token_id()){
+		var _id = get_token_id();
+		var _val = get_token_val();
+	
+		switch(_id){
 			case tokenID.Value:
-				array_push(bytecode, [opCode.PUSH, get_token_val()]);
-				
+				array_push(bytecode, [opCode.PUSH, _val]);
 				next();
-				
 				return;
-			
+		
 			case tokenID.Variable:
-				var _name = get_token_val();
-				
+				var _name = _val;
+			
 				array_push(bytecode, [opCode.LOAD, _name]);
-				
 				next();
-				
+			
 				if (get_token_val() == "++" || get_token_val() == "--"){
 					var _op = get_token_val();
 					next();
-					
+				
 					array_push(bytecode, [opCode.LOAD, _name]);
 					array_push(bytecode, [opCode.PUSH, 1]);
-					
+				
 					if (_op == "++")
 						array_push(bytecode, [opCode.ADD]);
 					else
 						array_push(bytecode, [opCode.SUB]);
-					
+				
 					array_push(bytecode, [opCode.STORE, _name]);
 				}
-				
+			
 				while(get_token_val() == "["){
 					next();
-					
 					parse_expression();
-					
+				
 					if (get_token_val() != "]")
 						error("Expected ']'", errorType.CRITICAL);
-					
+				
 					next();
-					
 					array_push(bytecode, [opCode.ARRAY_GET]);
 				}
-				
+			
 				while(get_token_val() == "."){
 					next();
-					
+				
 					var _method = get_token_val();
-					
 					next();
-					
+				
 					if (get_token_val() != "(")
 						error("Expected '(' after method name", errorType.CRITICAL);
-					
+				
 					next();
-					
+				
 					var _arg_count = 0;
 					if (get_token_val() != ")"){
 						while(curr < len){
 							parse_expression();
 							_arg_count++;
-							
+						
 							if (get_token_val() == ",")
 								next();
 							else
 								break;
 						}
 					}
-					
+				
 					if (get_token_val() != ")")
 						error("Expected ')'", errorType.CRITICAL);
-					
+				
 					next();
-					
 					array_push(bytecode, [opCode.METHOD, _method, _arg_count]);
 				}
-				
-				
-				return;
 			
+				return;
+		
 			case tokenID.Function:
-				if (token_is(get_token_val(), global.Functions)){
+				if (token_is(_val, global.Functions)){
 					parse_call();
 				}else{
 					parse_user_call();
 				}
-				
 				return;
-			
+		
 			case tokenID.Unar:
-				parse_prefix_idec();
-				
+				if (get_token_val() == "-"){
+					next();
+					parse_primary();
+					array_push(bytecode, [opCode.PUSH, -1]);
+					array_push(bytecode, [opCode.MUL]);
+				}else{
+					parse_prefix_idec();
+				}
 				return;
-			
+		
 			case tokenID.Sbracket_L:
 				next();
-				
+			
 				var _len = 0;
-				
+			
 				if (get_token_val() != "]")
 					while(curr < len){
 						parse_expression();
-						
 						_len++;
-						
+					
 						if (get_token_val() == ",")
 							next();
 						else
 							break;
 					}
-				
+			
 				if (get_token_val() != "]")
 					error("Expected ']'", errorType.CRITICAL);
-				
-				next();
-				
-				array_push(bytecode, [opCode.ARRAY_CREATE, _len]);
-				
-				return;
-		}
-		
-		switch(get_token_val()){
-			case "(":
-				next();
-				
-				parse_expression();
-				
-				if (get_token_val() != ")")
-					error("Expected ')'", errorType.CRITICAL);
-				
-				next();
-				
-				break;
 			
-			case "-":
 				next();
-				
+				array_push(bytecode, [opCode.ARRAY_CREATE, _len]);
+				return;
+		
+			case tokenID.Minus:
+				next();
 				parse_primary();
-				
 				array_push(bytecode, [opCode.PUSH, -1]);
 				array_push(bytecode, [opCode.MUL]);
-				
-				break;
+				return;
+		}
+	
+		switch(_val){
+			case "(":
+				next();
+				parse_expression();
 			
+				if (get_token_val() != ")")
+					error("Expected ')'", errorType.CRITICAL);
+			
+				next();
+				return;
+		
+			case "-":
+				next();
+				parse_primary();
+				array_push(bytecode, [opCode.PUSH, -1]);
+				array_push(bytecode, [opCode.MUL]);
+				return;
+		
 			case "+":
 				next();
-				
 				parse_primary();
-				break;
-			
+				return;
+		
 			case "!":
 				next();
-				
 				parse_primary();
-				
 				array_push(bytecode, [opCode.PUSH, false]);
 				array_push(bytecode, [opCode.COMPARE, "=="]);
-				
-				break;
+				return;
 		}
+	
+		error($"Unexpected token in expression: {_val}", errorType.CRITICAL);
 	}
 	
 	parse_multiplication = function(){
