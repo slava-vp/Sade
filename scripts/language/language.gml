@@ -9,7 +9,7 @@ enum EditorMode {
 
 function run(_code){
 	var _tokens = lexer(_code);
-	var _bytecode = parser(_tokens);
+	var _bytecode = parser(_tokens, true);
 	VMachine(_bytecode);
 }
 

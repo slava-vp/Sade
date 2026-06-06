@@ -52,7 +52,7 @@ if (editor_mode == EditorMode.full_editor){
 		
 		var _code = "";
 		for(var i = 0; i < _len; i++){
-			_code += _prep[i];
+			_code += _prep[i] + " ";
 		}
 		
 		if (_code == ""){

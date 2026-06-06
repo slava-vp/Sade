@@ -85,10 +85,8 @@ function token_is_value(_tok){
 	if (_tok == "") return false;
 	
 	var _is_string = token_is_string(_tok);
-	show_debug_message($"token_is_value({_tok}): _is_string={_is_string}");
 	
 	var _is_real = token_is_real(_tok);
-	show_debug_message($"token_is_value({_tok}): _is_real={_is_real}");
 	
 	return (_is_real || _is_string);
 }

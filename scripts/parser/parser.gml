@@ -728,76 +728,87 @@ function parser(_tokens, _show_output = false){
 		next();
 		
 		if (get_token_val() == "["){
+			var _indices = [];
+			
 			array_push(bytecode, [opCode.LOAD, _name]);
-			next();
 			
-			parse_expression();
-			
-			if (get_token_val() != "]")
-				error("Expected ']'", errorType.CRITICAL);
-			
-			next();
-			
-			var _op = get_token_val();
-			
-			switch(_op){
-				case "=":
-					next();
-					
-					parse_expression();
-					
-					array_push(bytecode, [opCode.ARRAY_SET]);
-					
-					array_push(bytecode, [opCode.STORE, _name]);
-					
-					break;
+			while(get_token_val() == "["){
+				next();
 				
-				case "+=":
-				case "-=":
-				case "*=":
-				case "/=":
-				case "//=":
-				case "^=":
-					var _idx_tmp = $"__idx_{label_create()}_";
-					var _val_tmp = $"__val_{label_create()}_";
-					
-					array_push(bytecode, [opCode.STORE, _idx_tmp]);
-					array_push(bytecode, [opCode.DUP]);
+				var _idx_tmp = $"__idx_{label_create()}_";
+				array_push(_indices, _idx_tmp);
+				
+				parse_expression();
+				array_push(bytecode, [opCode.STORE, _idx_tmp]);
+				
+				if (get_token_val() != "]"){
+					error("Expected ']'", errorType.CRITICAL);
+				}
+				
+				next();
+				
+				if (get_token_val() == "["){
 					array_push(bytecode, [opCode.LOAD, _idx_tmp]);
 					array_push(bytecode, [opCode.ARRAY_GET]);
-					
-					next();
-					
-					parse_expression();
-					
-					if (_op == "+=") array_push(bytecode, [opCode.ADD]);
-					else if (_op == "-=") array_push(bytecode, [opCode.SUB]);
-					else if (_op == "*=") array_push(bytecode, [opCode.MUL]);
-					else if (_op == "/=") array_push(bytecode, [opCode.DIV]);
-					else if (_op == "//=") array_push(bytecode, [opCode.IDIV]);
-					else if (_op == "^=") array_push(bytecode, [opCode.POW]);
-					
-					
-					array_push(bytecode, [opCode.STORE, _val_tmp]);
-					array_push(bytecode, [opCode.LOAD, _idx_tmp]);
-					array_push(bytecode, [opCode.LOAD, _val_tmp]);
-					array_push(bytecode, [opCode.ARRAY_SET]);
-					array_push(bytecode, [opCode.STORE, _name]);
-					
-					array_push(bytecode, [opCode.DELETE, _idx_tmp]);
-					array_push(bytecode, [opCode.DELETE, _val_tmp]);
-					
-					break;
+				}
+			}
+			
+			var _last_idx = _indices[array_length(_indices) - 1];
+			var _op = get_token_val();
+			
+			if (_op == "="){
+				next();
+				array_push(bytecode, [opCode.LOAD, _last_idx]);
+				parse_expression();
+				array_push(bytecode, [opCode.ARRAY_SET]);
 				
-				default:
-					error($"Unknown assignment operator: {_op}", errorType.CRITICAL);
+				for(var i = array_length(_indices) - 2; i >= 0; i--){
+					var _tmp = $"__tmp_{label_create()}_";
+					array_push(bytecode, [opCode.STORE, _tmp]);
+					array_push(bytecode, [opCode.LOAD, _name]);
 					
-					break;
+					for(var j = 0; j < i; j++){
+						array_push(bytecode, [opCode.LOAD, _indices[j]]);
+						array_push(bytecode, [opCode.ARRAY_GET]);
+					}
+					
+					array_push(bytecode, [opCode.LOAD, _indices[i]]);
+					array_push(bytecode, [opCode.LOAD, _tmp]);
+					array_push(bytecode, [opCode.ARRAY_SET]);
+				}
+				
+				array_push(bytecode, [opCode.STORE, _name]);
+			
+			}else if (_op == "+=" || _op == "-=" || _op == "*=" || _op == "/=" || _op == "//=" || _op == "^="){
+				array_push(bytecode, [opCode.DUP]);
+				array_push(bytecode, [opCode.LOAD, _last_idx]);
+				array_push(bytecode, [opCode.ARRAY_GET]);
+				
+				next();
+				parse_expression();
+				
+				if (_op == "+=") array_push(bytecode, [opCode.ADD]);
+				else if (_op == "-=") array_push(bytecode, [opCode.SUB]);
+				else if (_op == "*=") array_push(bytecode, [opCode.MUL]);
+				else if (_op == "/=") array_push(bytecode, [opCode.DIV]);
+				else if (_op == "//=") array_push(bytecode, [opCode.IDIV]);
+				else if (_op == "^=") array_push(bytecode, [opCode.POW]);
+				
+				array_push(bytecode, [opCode.STORE, "__temp_val__"]);
+				array_push(bytecode, [opCode.LOAD, _last_idx]);
+				array_push(bytecode, [opCode.LOAD, "__temp_val__"]);
+				array_push(bytecode, [opCode.ARRAY_SET]);
+			
+			}else{
+				error($"Unknown assignment operator: {_op}", errorType.CRITICAL);
+			}
+			
+			for(var i = 0; i < array_length(_indices); i++){
+				array_push(bytecode, [opCode.DELETE, _indices[i]]);
 			}
 			
 			return;
 		}
-		
 		var _op = get_token_val();
 		
 		switch(_op){
@@ -879,8 +890,6 @@ function parser(_tokens, _show_output = false){
 				
 				break;
 		}
-		
-		//array_push(bytecode, [opCode.STORE, _name]);
 	}
 	
 	parse_statement = function(){

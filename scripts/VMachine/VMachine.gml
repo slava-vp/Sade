@@ -440,12 +440,16 @@ function VMachine(_bytecode){
 				break;
 			
 			case opCode.ARRAY_SET:
-				var _value = array_pop(stack);
-				
+				var _value = get_value(array_pop(stack));
+			
 				var _index = get_value(array_pop(stack));
 				
 				var _arr = array_pop(stack);
-				
+	
+				if (_index >= array_length(_arr)){
+					error("Attempt to go beyond the bounds of an array", errorType.CRITICAL);
+				}
+	
 				_arr[_index] = _value;
 				
 				array_push(stack, _arr);
