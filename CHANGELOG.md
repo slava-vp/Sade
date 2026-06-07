@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.0.8 (06.06.2026)
+## v0.0.8 (06.07.2026)
 
 ### Added:
   - internal error log
@@ -8,6 +8,9 @@
       - wraps code execution in a try/catch for internal error logging
   - wrap for console
   - cyclic processing of arrays
+  - the editor preserves indents
+  - backspace now removes 4 spaces
+  - true/false as 1/0
 
 ### Fixed:
   - multidimensional arrays
@@ -21,6 +24,11 @@
   - the missing //= operator
   - double-draw the scrollbar in File Manager
   - scrolling in the file manager
+  - fixed the "continue" keyword for loops
+  - range-based loops
+
+### Other:
+  - names for snippets
 
 ## v0.0.7 (06.05.2026)
 

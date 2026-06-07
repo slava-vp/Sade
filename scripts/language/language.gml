@@ -72,6 +72,8 @@ global.Keywords = [
 	"func",
 	"return",
 	"for",
+	"continue",
+	"break",
 	"#include",
 	"#set",
 ];

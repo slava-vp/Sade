@@ -10,6 +10,9 @@ function parser(_tokens, _show_output = false){
 	len = array_length(tokens);
 	curr = 0;
 	
+	current_break = "";
+	current_continue = "";
+	
 	next = function(){
 		if (curr < len){
 			curr++;
@@ -34,210 +37,210 @@ function parser(_tokens, _show_output = false){
 	
 	parse_for = function(){
 		next();
-		
+	
 		if (get_token_val() != "(")
 			parse_error("Expected '(' after for", errorType.CRITICAL);
-		
+	
 		next();
-		
+	
 		var _var_name = get_token_val();
-		
+	
 		if (get_token_id() != tokenID.Variable)
 			parse_error("Expected variable name after for", errorType.CRITICAL);
-		
+	
 		next();
-		
+	
 		var _label_start = label_create();
 		var _label_end = label_create();
 		var _label_continue = label_create();
-		
-		current_break = _label_end;
-		current_continue = _label_continue;
-		
+	
 		var _prev_break = current_break;
 		var _prev_continue = current_continue;
-		
+	
+		current_break = _label_end;
+		current_continue = _label_continue;
+	
 		var _op = get_token_val();
-		
+	
 		if (_op == "in"){
 			next();
-			
+		
 			var _val = get_token_val();
 			var _is_range = (get_token_id() == tokenID.Value && token_is_value(get_token_val()));
-			
+		
 			if (_is_range){
-				var _range_end = real(get_token_val()) - 1;
+				var _range_end = real(get_token_val());
 				next();
-				
+			
 				array_push(bytecode, [opCode.PUSH, 0]);
 				array_push(bytecode, [opCode.STORE, _var_name]);
-				
+			
 				var _end_tmp = $"__end_{label_create()}_";
-				
+			
 				array_push(bytecode, [opCode.PUSH, _range_end]);
 				array_push(bytecode, [opCode.STORE, _end_tmp]);
-				
+			
 				var _step = 1;
 				if (get_token_val() == "step"){
 					next();
-					
+				
 					var _sign = 1;
 					if (get_token_val() == "-"){
 						_sign = -1;
 						next();
 					}
-					
+				
 					_step = real(get_token_val()) * _sign;
 					next();
 				}
-				
+			
 				if (get_token_val() != ")")
 					parse_error("Expected ')' after for condition", errorType.CRITICAL);
-				
+			
 				next();
-				
+			
 				array_push(bytecode, [opCode.LABEL, _label_start]);
-				
+			
 				array_push(bytecode, [opCode.LOAD, _var_name]);
 				array_push(bytecode, [opCode.LOAD, _end_tmp]);
-				var _compare = (_step >= 0) ? "<=" : ">=";
+				var _compare = (_step >= 0) ? "<" : ">";
 				array_push(bytecode, [opCode.COMPARE, _compare]);
 				array_push(bytecode, [opCode.JUMP_IF_FALSE, _label_end]);
-				
-				array_push(bytecode, [opCode.LABEL, _label_continue]);
-				
+			
 				parse_block();
-				
+			
+				array_push(bytecode, [opCode.LABEL, _label_continue]);
+			
 				array_push(bytecode, [opCode.LOAD, _var_name]);
 				array_push(bytecode, [opCode.PUSH, _step]);
 				array_push(bytecode, [opCode.ADD]);
 				array_push(bytecode, [opCode.STORE, _var_name]);
-				
+			
 				array_push(bytecode, [opCode.JUMP, _label_start]);
 				array_push(bytecode, [opCode.LABEL, _label_end]);
-				
+			
 				array_push(bytecode, [opCode.DELETE, _end_tmp]);
 			}else{
 				parse_expression();
-				
+			
 				var _arr_tmp = $"__arr_{label_create()}";
 				var _idx_tmp = $"__idx_{label_create()}";
 				var _len_tmp = $"__len_{label_create()}";
-				
+			
 				array_push(bytecode, [opCode.STORE, _arr_tmp]);
 				array_push(bytecode, [opCode.PUSH, 0]);
 				array_push(bytecode, [opCode.STORE, _idx_tmp]);
 				array_push(bytecode, [opCode.LOAD, _arr_tmp]);
 				array_push(bytecode, [opCode.ARRAY_LEN]);
 				array_push(bytecode, [opCode.STORE, _len_tmp]);
-				
+			
 				var _step = 1;
 				if (get_token_val() == "step"){
 					next();
-					
+				
 					var _sign = 1;
 					if (get_token_val() == "-"){
 						_sign = -1;
 						next();
 					}
-					
+				
 					_step = real(get_token_val()) * _sign;
 					next();
 				}
-				
+			
 				if (get_token_val() != ")")
 					parse_error("Expected ')' after for condition", errorType.CRITICAL);
-				
+			
 				next();
-				
+			
 				array_push(bytecode, [opCode.LABEL, _label_start]);
-				
+			
 				array_push(bytecode, [opCode.LOAD, _idx_tmp]);
 				array_push(bytecode, [opCode.LOAD, _len_tmp]);
-				var _compare = (_step >= 0) ? "<=" : ">=";
+				var _compare = (_step >= 0) ? "<" : ">";
 				array_push(bytecode, [opCode.COMPARE, _compare]);
 				array_push(bytecode, [opCode.JUMP_IF_FALSE, _label_end]);
-				
+			
 				array_push(bytecode, [opCode.LOAD, _arr_tmp]);
 				array_push(bytecode, [opCode.LOAD, _idx_tmp]);
 				array_push(bytecode, [opCode.ARRAY_GET]);
 				array_push(bytecode, [opCode.STORE, _var_name]);
-				
-				array_push(bytecode, [opCode.LABEL, _label_continue]);
-				
+			
 				parse_block();
-				
+			
+				array_push(bytecode, [opCode.LABEL, _label_continue]);
+			
 				array_push(bytecode, [opCode.LOAD, _idx_tmp]);
 				array_push(bytecode, [opCode.PUSH, _step]);
 				array_push(bytecode, [opCode.ADD]);
 				array_push(bytecode, [opCode.STORE, _idx_tmp]);
-				
+			
 				array_push(bytecode, [opCode.JUMP, _label_start]);
 				array_push(bytecode, [opCode.LABEL, _label_end]);
-				
+			
 				array_push(bytecode, [opCode.DELETE, _arr_tmp]);
 				array_push(bytecode, [opCode.DELETE, _idx_tmp]);
 				array_push(bytecode, [opCode.DELETE, _len_tmp]);
 			}
 		}else if (_op == "="){
 			next();
-			
+		
 			parse_expression();
 			array_push(bytecode, [opCode.STORE, _var_name]);
-			
+		
 			if (get_token_val() != "in")
 				parse_error("Expected 'in' after start value", errorType.CRITICAL);
-			
+		
 			next();
-			
+		
 			parse_expression();
-			
+		
 			var _end_tmp = $"__end_{label_create()}_";
 			array_push(bytecode, [opCode.STORE, _end_tmp]);
-			
+		
 			var _step = 1;
 			if (get_token_val() == "step"){
 				next();
-				
+			
 				var _sign = 1;
 				if (get_token_val() == "-"){
 					_sign = -1;
 					next();
 				}
-				
+			
 				_step = real(get_token_val()) * _sign;
 				next();
 			}
-			
+		
 			if (get_token_val() != ")")
 				parse_error("Expected ')' after for condition", errorType.CRITICAL);
-			
+		
 			next();
-			
+		
 			array_push(bytecode, [opCode.LABEL, _label_start]);
-			
+		
 			array_push(bytecode, [opCode.LOAD, _var_name]);
 			array_push(bytecode, [opCode.LOAD, _end_tmp]);
-			var _compare = (_step >= 0) ? "<=" : ">=";
+			var _compare = (_step >= 0) ? "<" : ">";
 			array_push(bytecode, [opCode.COMPARE, _compare]);
 			array_push(bytecode, [opCode.JUMP_IF_FALSE, _label_end]);
-			
-			array_push(bytecode, [opCode.LABEL, _label_continue]);
-			
+		
 			parse_block();
-			
+		
+			array_push(bytecode, [opCode.LABEL, _label_continue]);
+		
 			array_push(bytecode, [opCode.LOAD, _var_name]);
 			array_push(bytecode, [opCode.PUSH, _step]);
 			array_push(bytecode, [opCode.ADD]);
 			array_push(bytecode, [opCode.STORE, _var_name]);
-			
+		
 			array_push(bytecode, [opCode.JUMP, _label_start]);
 			array_push(bytecode, [opCode.LABEL, _label_end]);
-			
+		
 			array_push(bytecode, [opCode.DELETE, _end_tmp]);
 		}else
 			parse_error("Expected 'in' or '=' after variable in for", errorType.CRITICAL);
-		
+	
 		current_break = _prev_break;
 		current_continue = _prev_continue;
 	}
@@ -823,6 +826,14 @@ function parser(_tokens, _show_output = false){
 		var _op = get_token_val();
 		
 		switch(_op){
+			case "=":
+				next();
+				
+				parse_expression();
+				
+				array_push(bytecode, [opCode.STORE, _name]);
+				
+				break;
 			case "+=":
 				next();
 				
@@ -929,6 +940,16 @@ function parser(_tokens, _show_output = false){
 					case "return":
 						parse_return();
 						break;
+						
+					case "break":
+						array_push(bytecode, [opCode.BREAK, current_break]);
+						next();
+						break;
+						
+					case "continue":
+						array_push(bytecode, [opCode.CONTINUE, current_continue]);
+						next();
+						break;
 				}
 				
 				break;
@@ -965,8 +986,6 @@ function parser(_tokens, _show_output = false){
 						array_push(bytecode, [opCode.STORE, _name]);
 					}
 				}
-				
-				parse_expression();
 				break;
 			
 			case tokenID.Unar:

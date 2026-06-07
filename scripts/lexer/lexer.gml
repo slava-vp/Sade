@@ -410,7 +410,13 @@ function lexer(_str, _show_output = true, _just_words = false, _show_errors = tr
 					break;
 					
 				default:
-					if (token_is(_token_value, global.Functions)){
+					if (_token_value == "true"){
+						_token_id = tokenID.Value;
+						_token_value = 1;
+					}else if (_token_value == "false"){
+						_token_id = tokenID.Value;
+						_token_value = 0;
+					}else if (token_is(_token_value, global.Functions)){
 						_token_id = tokenID.Function;
 					}else if (token_is(_token_value, global.Keywords)){
 						_token_id = tokenID.Keyword;

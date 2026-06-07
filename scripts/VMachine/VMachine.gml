@@ -436,7 +436,7 @@ function VMachine(_bytecode){
 				var _arr = array_pop(stack);
 	
 				if (array_length(_arr) == 0){
-					error("Cannot access element of empty array");
+					error("Cannot access element of empty array", errorType.CRITICAL);
 					break;
 				}
 	

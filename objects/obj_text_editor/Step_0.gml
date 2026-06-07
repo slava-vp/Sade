@@ -333,6 +333,26 @@ if (_key == vk_enter){
 	lines_count = array_length(lines);
 	current_line++;
 	
+	var _prev_line = lines[current_line - 1];
+	var _indent = "";
+	for (var i = 1; i <= string_length(_prev_line); i++){
+		var _ch = string_char_at(_prev_line, i);
+		if (_ch == " " || _ch == "    "){
+			_indent += _ch;
+		} else {
+			break;
+		}
+	}
+	
+	lines[current_line] = _indent + lines[current_line];
+	current_char = string_length(_indent);
+	
+	var _trimmed = string_trim(_prev_line);
+	if (string_length(_trimmed) > 0 && string_char_at(_trimmed, string_length(_trimmed)) == "{"){
+		lines[current_line] = _indent + "    " + lines[current_line];
+		current_char = string_length(_indent) + 1;
+	}
+	
 	var _len = string_length(lines[current_line]);
 	if (prev_char > _len) current_char = _len;
 	else current_char = prev_char;
@@ -365,8 +385,19 @@ if (_key == vk_backspace){
 			surface_redraw_line();
 			
 			if (current_char > 0){
-				lines[current_line] = string_delete(lines[current_line], current_char, 1);
-				current_char--;
+				if (current_char >= 4){
+					var _check = string_copy(lines[current_line], current_char - 3, 4);
+					if (_check == "    "){
+						lines[current_line] = string_delete(lines[current_line], current_char - 3, 4);
+						current_char -= 4;
+					}else{
+						lines[current_line] = string_delete(lines[current_line], current_char, 1);
+						current_char--;
+					}
+				}else{
+					lines[current_line] = string_delete(lines[current_line], current_char, 1);
+					current_char--;
+				}
 				surface_redraw_line();
 			}else{
 				if (current_line > 0){
@@ -391,7 +422,7 @@ if (_key == vk_backspace){
 	line_col = 1;
 	
 	if (autocomplete_popup){
-	    show_autocomplete();
+		show_autocomplete();
 	}
 }
 
@@ -456,6 +487,11 @@ if (mouse_check_button_pressed(mb_left)){
 	_line = clamp(_line, 0, lines_count - 1);
 	_char_x = clamp(_char_x, 0, string_length(lines[_line]));
 	
+	click_x = mouse_x;
+	click_y = mouse_y;
+	click_start_line = _line;
+	click_start_char = _char_x;
+	
 	if (keyboard_check(vk_alt)){
 		add_cursor(_line, _char_x);
 		exit;
@@ -468,9 +504,6 @@ if (mouse_check_button_pressed(mb_left)){
 	}else{
 		click_count = 1;
 	}
-	
-	click_x = mouse_x;
-	click_y = mouse_y;
 	
 	current_line = _line;
 	current_char = _char_x;
@@ -485,12 +518,10 @@ if (mouse_check_button_pressed(mb_left)){
 
 if (click_timer > 0){
 	click_timer--;
-	
 	if (click_timer <= 0) click_count = 0;
 }
 
-if (mouse_check_button(mb_left) && (abs(mouse_x - click_x) > 3 || abs(mouse_y - click_y) > 3)){
-	click_timer = 15;
+if (mouse_check_button(mb_left) && !mouse_check_button_pressed(mb_left)){
 	var _rel_x = mouse_x - window.get_content_x() - line_x_start + h_scroll_offset;
 	var _char_x = round(_rel_x / char_w);
 	var _line = round((mouse_y - window.get_content_y() - (char_h / 2)) / (char_h + 4)) + lines_skip;
@@ -513,16 +544,18 @@ if (mouse_check_button(mb_left) && (abs(mouse_x - click_x) > 3 || abs(mouse_y - 
 		}
 		multi_cursor_active = array_length(cursors) > 0;
 	}else{
-		if (select_start_line == -1){
-			select_start_line = current_line;
-			select_start_char = current_char;
+		if (abs(mouse_x - click_x) > 3 || abs(mouse_y - click_y) > 3){
+			if (select_start_line == -1){
+				select_start_line = click_start_line;
+				select_start_char = click_start_char;
+			}
+			
+			select_end_line = _line;
+			select_end_char = _char_x;
+			is_select = true;
+			current_line = _line;
+			current_char = _char_x;
 		}
-		
-		select_end_line = _line;
-		select_end_char = _char_x;
-		is_select = true;
-		current_line = _line;
-		current_char = _char_x;
 	}
 }
 
@@ -581,7 +614,6 @@ if (mouse_check_button_released(mb_left)){
 		select_end_char = string_length(lines[current_line]);
 		is_select = true;
 		current_char = select_end_char;
-		
 		click_count = 0;
 	}
 }
