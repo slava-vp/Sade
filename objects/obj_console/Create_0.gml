@@ -11,7 +11,7 @@ window.has_h_scrollbar = true;
 window.h_scroll_step = 20;
 
 console_lines = [];
-wrapped_lines = [];  // строки после переноса
+wrapped_lines = [];
 max_lines = 500;
 line_height = 16;
 padding = 4;
@@ -23,7 +23,7 @@ surface_needs_update = true;
 
 h_scroll_offset = 0;
 h_scroll_max = 0;
-word_wrap = true;
+word_wrap = false;
 
 window.add_button("Clear", function(){
 	clear();

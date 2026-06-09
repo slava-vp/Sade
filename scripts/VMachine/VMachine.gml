@@ -1,4 +1,5 @@
 function VMachine(_bytecode){
+	var _time1 = get_timer();
 	bytecode = _bytecode;
 	len = array_length(bytecode);
 	
@@ -37,96 +38,46 @@ function VMachine(_bytecode){
 	builtin_functions = ds_map_create();
 	builtin_functions[? "print"] = function(_args){
 		array_foreach(_args, function(value, index){ console_log(value); });
+		return 0;
 	}
-	
-	string_methods = ds_map_create();
-	string_methods[? "cat"] = function(_str, _args){
-		var _len = array_length(_args);
-	
-		for(var i = 0; i < _len; i++){
-			_str += $"{_args[i]}";
-		}
-	
-		return _str;
+	builtin_functions[? "chr"] = function(_args){
+		//show_debug_message($"chr: {_args[0]}, chr: {chr(_args[0])}, ord: {ord(_args[0])}, ansc: {ansi_char(_args[0])}")
+		return chr(_args[0]);
 	}
-	string_methods[? "len"] = function(_str, _args){
-		return string_length(_str);
-	}
-	string_methods[? "cp"] = function(_str, _args){
-		return string_copy(_str, _args[0], _args[1]);
-	}
-	string_methods[? "ch"] = function(_str, _args){
-		return string_char_at(_str, _args[0]);
-	}
-	string_methods[? "ins"] = function(_str, _args){
-		return string_insert(_args[0], _str, _args[1]);
-	}
-
-	array_methods = ds_map_create();
-	array_methods[? "push"] = function(_arr, _args){
-		array_push(_arr, _args[0]);
-	
-		return _arr;
-	}
-	array_methods[? "pop"] = function(_arr, _args){
-		array_pop(_arr);
-		return _arr;
-	}
-	array_methods[? "last"] = function(_arr, _args){
-		return _arr[array_length(_arr) - 1];
-	}
-	array_methods[? "len"] = function(_arr, _args){
-		return array_length(_arr);
-	}
-	array_methods[? "ins"] = function(_arr, _args){
-		array_insert(_arr, _args[0], _args[1]);
-		return _arr;
-	}
-	array_methods[? "del"] = function(_arr, _args){
-		array_delete(_arr, _args[0], _args[1]);
-		return _arr;
-	};
 	
 	console_log(">VMachine<");
 	
 	get_value = function(_val){
+		if (is_undefined(_val)) return 0;
 		if (is_array(_val) || is_struct(_val)) return _val;
+		
+		if (ds_map_exists(memory, _val)){
+			return memory[? _val];
+		}
 		
 		if (is_numeric(_val)) return real(_val);
 		
-		if (string_length(string_digits(_val)) == string_length(_val) && _val != ""){
-				return real(_val);
-		}
-
 		if (is_string(_val) && string_length(_val) >= 2){
 			if (string_char_at(_val, 1) == "'" && string_char_at(_val, string_length(_val)) == "'"){
 				return string_copy(_val, 2, string_length(_val) - 2); 
 			}
 		}
 		
-		if (token_is_variable(_val)){
-			if (ds_map_exists(memory, _val)){	
-				return memory[? _val];
-			}else{
-				if (is_string(_val)){
-					return _val;
-				}
-				
-				if (!token_is_value(_val)){
-					if (global.Settings.use_0_as_default){
-						error($"The variable '{_val}' was not created prior to use.\nThe default value '0' is used.", errorType.WARNING);
-						
-						return 0;
-					}else
-						error($"Variable '{_val}' not found", errorType.CRITICAL);
-				}
-			}
+		if (is_string(_val)){
+			return _val;
 		}
 		
-		if (string_length(string_digits(_val)) == string_length(_val))
+		if (string_length(string_digits(_val)) == string_length(_val) && _val != ""){
 			return real(_val);
+		}
 		
-		return _val;
+		if (global.Settings.use_0_as_default){
+			error($"The variable '{_val}' was not created prior to use.\nThe default value '0' is used.", errorType.WARNING);
+			return 0;
+		}else{
+			error($"Variable '{_val}' not found", errorType.CRITICAL);
+			return 0;
+		}
 	}
 	
 	for(curr = 0; curr < len; curr++){
@@ -197,55 +148,49 @@ function VMachine(_bytecode){
 					array_push(_args, _arg);
 				}
 				
+				var _res = 0;
 				if (ds_map_exists(builtin_functions, _func_name))
-					builtin_functions[? _func_name](_args);
+					_res = builtin_functions[? _func_name](_args);
 				else
 					error($"Builtin Function '{_func_name}' not found", errorType.CRITICAL);
 				
+				array_push(stack, _res);
+				
 				break;
 			
-			case opCode.CALL:
-				var _func_name = _instruction[1];
-				
-				var _args_count = _instruction[2];
-				
-				var _func_obj = get_value(_func_name);
-				
-				if (!is_struct(_func_obj))
-					error($"User-defined Function '{_func_name}' not found", errorType.CRITICAL);
-				
-				var _args = [];
-				
-				for(var i = 0; i < _args_count; i++){
-					var _arg = array_pop(stack);
-					array_push(_args, _arg);
-				}
-				
-				_func_obj[$ "stack"] = [];
-				ds_map_clear(_func_obj[$ "memory"]);
-				
-				var _params_len = array_length(_func_obj[$ "params"]);
-				
-				for(var i = 0; i < _params_len; i++){
-					var _param_name = _func_obj[$ "params"][i];
-					var _param_val = (i < array_length(_args) ? _args[i] : undefined);
-					
-					_func_obj[$ "memory"][? _param_name] = _param_val;
-				}
-				
-				array_push(call_stack, {
-					return_curr: curr,
-					caller_stack: stack,
-					caller_memory: memory,
-					func_obj: _func_obj
-				});
-				
-				stack = _func_obj[$ "stack"];
-				memory = _func_obj[$ "memory"];
-				
-				jump_to_label(_func_obj[$ "start_label"]);
-				
-				break;
+		case opCode.CALL:
+			var _func_name = _instruction[1];
+			var _arg_count = _instruction[2];
+			var _func_obj = get_value(_func_name);
+			
+			if (!is_struct(_func_obj)) {
+				error($"Undef eser-defined function: {_func_name}", errorType.CRITICAL);
+			}
+			
+			var _args = [];
+			for(var i = 0; i < _arg_count; i++){
+				var _arg = array_pop(stack);
+				_args = array_concat([get_value(_arg)], _args);
+			}
+			
+			array_push(call_stack, {
+				return_curr: curr,
+				caller_stack: stack,
+				caller_memory: memory,
+				func_obj: _func_obj
+			});
+			
+			stack = _func_obj.stack;
+			memory = _func_obj.memory;
+			
+			for(var i = 0; i < array_length(_func_obj.params); i++){
+				var _param_name = _func_obj.params[i];
+				var _param_val = (i < array_length(_args)) ? _args[i] : undefined;
+				memory[? _param_name] = _param_val;
+			}
+			
+			jump_to_label(_func_obj.start_label);
+			break;
 			
 			case opCode.METHOD:
 				var _method = _instruction[1];
@@ -260,9 +205,9 @@ function VMachine(_bytecode){
 				var _methods = undefined;
 				
 				if (is_string(_obj)){
-					_methods = string_methods;
+					_methods = global.string_methods;
 				}else if (is_array(_obj)){
-					_methods = array_methods;
+					_methods = global.array_methods;
 				}
 				
 				if (_methods != undefined && ds_map_exists(_methods, _method)){
@@ -519,10 +464,15 @@ function VMachine(_bytecode){
 	ds_map_destroy(label_map);
 	ds_map_destroy(builtin_functions);
 	ds_map_destroy(memory);
-	ds_map_destroy(string_methods);
-	ds_map_destroy(array_methods);
 	stack = -1;
 	
 	console_log(">VMachine<\n");
+	var _time2 = get_timer();
+	
+	console_log($"Code run time: {(_time2 - _time1) / 1_000_000} sec.");
+	
 	return 0;
 }
+
+
+/// TODO:	 The editor inserts extra tabs when you type enter.

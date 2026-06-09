@@ -20,8 +20,8 @@ function lexer(_str, _show_output = true, _just_words = false, _show_errors = tr
 		show_debug_message($"source: {_str}");
 	}
 	
-	strings = array_create(10, "");
-	strings_count = 0;
+	strings = [];
+	strings_read = 0;
 	
 	var _str_len = string_length(_str);
 	var _in_string = false;
@@ -32,24 +32,22 @@ function lexer(_str, _show_output = true, _just_words = false, _show_errors = tr
 		_ch = string_char_at(_str, i);
 		
 		if (_in_string && _ch != "'"){
-			strings[strings_count] += _ch;
+			strings[array_length(strings) - 1] += _ch;
 		}
-		
+
 		if (_ch == "'"){
 			_in_string = !_in_string;
-			
-			if (!_in_string){
-				strings_count++;
-				
+	
+			if (_in_string){
+				array_push(strings, "");
+				_string_start = i;
+			}else{
 				if (_string_start != -1){
 					_str = string_replace(_str, string_copy(_str, _string_start, i - _string_start + 1), "lexerpasteherestring");
-					
 					_string_start = -1;
 					_str_len = string_length(_str);
 				}
 			}
-			
-			if (_in_string) _string_start = i;
 		}
 	}
 	
@@ -58,7 +56,7 @@ function lexer(_str, _show_output = true, _just_words = false, _show_errors = tr
 	}
 	
 	str = _str;
-	var _spaces = ["lexerpasteherestring", "\n", "|", "(", ")", "{", "}", "[", "]", ";", ":", "\"", "'", ",", ".", "<", ">", "/", "\\", "?", "!", "@", "$", "%", "^", "&", "*", "-", "+", "="];
+	var _spaces = ["lexerpasteherestring", "\n", "|", "(", ")", "{", "}", "[", "]", ";", ":", ",", ".", "<", ">", "/", "\\", "?", "!", "@", "$", "%", "^", "&", "*", "-", "+", "="];
 	var _len = array_length(_spaces);
 	
 	for(var i = 0; i < _len; i++){
@@ -131,8 +129,8 @@ function lexer(_str, _show_output = true, _just_words = false, _show_errors = tr
 				case "lexerpasteherestring":
 					_token_id = tokenID.Value;
 					
-					_token_value = $"'{strings[0]}'";
-					array_delete(strings, 0, -1);
+					_token_value = $"'{strings[strings_read]}'";
+					strings_read++;
 					
 					break;
 				case "|":

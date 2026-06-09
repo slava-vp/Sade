@@ -45,8 +45,22 @@ line_col = 1;
 click_start_line = 0;
 click_start_char = 0;
 
+goto_line_active = false;
+goto_line_number = "";
+
+bracket_pairs = ds_map_create();
+ds_map_add(bracket_pairs, "(", ")");
+ds_map_add(bracket_pairs, "[", "]");
+ds_map_add(bracket_pairs, "{", "}");
+ds_map_add(bracket_pairs, ")", "(");
+ds_map_add(bracket_pairs, "]", "[");
+ds_map_add(bracket_pairs, "}", "{");
+
 if (editor_mode == EditorMode.full_editor){
+	console_check();
+	
 	run_code = function(){
+		console_log($"=== SADE {SADE_LANG_VER} ===");
 		var _prep = Preprocessor(lines);
 		var _len = array_length(_prep);
 	
@@ -74,15 +88,19 @@ if (editor_mode == EditorMode.full_editor){
 	window.colors.title_bg_focused = c_dkgray;
 	window.has_scrollbar = true;
 	window.has_h_scrollbar = true;
-	window.scrollbar_step = 1;
+	window.scrollbar_step = 3;
+	window.h_scroll_step = 40;
 	
 	window.add_button("run", function(){
 		run_code();
 	}, c_green, 30);
+	window.add_button("full scr", function(){
+		toggle_fullscreen();
+	}, c_gray);
 	
 	height = window.get_content_height();
 	width = window.get_content_width();
-	lines_max_draw = height div (char_h + 4) + 1;
+	lines_max_draw = height div (char_h + 4);
 }else if (editor_mode == EditorMode.popup_input){
 	window = new Window(room_width / 2 - 200, room_height / 2 - 50, 400, 100, "");
 	window.colors.bg = c_white;
@@ -114,6 +132,99 @@ cursors = [];
 multi_cursor_active = false;
 
 include_words = [];
+
+search_active = false;
+search_text = "";
+search_results = [];
+search_index = -1;
+
+fullscreen = false;
+fullscreen_x = 0;
+fullscreen_y = 0;
+fullscreen_width = 0;
+fullscreen_height = 0;
+
+toggle_fullscreen = function(){
+	if (fullscreen){
+		window.x = fullscreen_x;
+		window.y = fullscreen_y;
+		window.width = fullscreen_width;
+		window.height = fullscreen_height;
+		window.can_drag = false;
+		window.can_resize = false;
+		window.has_scrollbar = true;
+		window.has_h_scrollbar = true;
+		fullscreen = false;
+		
+		depth = TEDITFS_DEPTH;
+	}else{
+		fullscreen_x = window.x;
+		fullscreen_y = window.y;
+		fullscreen_width = window.width;
+		fullscreen_height = window.height;
+		window.x = 0;
+		window.y = 0;
+		window.width = room_width;
+		window.height = room_height;
+		window.can_drag = false;
+		window.can_resize = false;
+		window.has_scrollbar = true;
+		window.has_h_scrollbar = true;
+		fullscreen = true;
+		
+		depth = TEDITOR_DEPTH;
+	}
+	
+	width = window.get_content_width();
+	height = window.get_content_height();
+	lines_max_draw = height div (char_h + 4) + 1;
+	
+	if (surface_exists(text_surface)) surface_free(text_surface);
+	text_surface = surface_create(width, height);
+	update_text_surf();
+}
+
+perform_search = function(){
+	search_results = [];
+	if (search_text == "") return;
+	
+	var _search = string_lower(search_text);
+	
+	for (var i = 0; i < lines_count; i++){
+		var _line = string_lower(lines[i]);
+		var _pos = 1;
+		while (_pos <= string_length(_line)){
+			var _found = string_pos(_search, string_copy(_line, _pos, string_length(_line) - _pos + 1));
+			if (_found == 1){
+				array_push(search_results, { line: i, char: _pos - 1 });
+				_pos += string_length(_search);
+			}else{
+				_pos++;
+			}
+		}
+	}
+}
+
+jump_to_search_result = function(){
+	if (search_index < 0 || search_index >= array_length(search_results)) return;
+	
+	var _pos = search_results[search_index];
+	current_line = _pos.line;
+	current_char = _pos.char;
+	prev_char = current_char;
+	
+	lines_skip = max(0, current_line - lines_max_draw div 2);
+	if (lines_skip > lines_count - lines_max_draw) lines_skip = max(0, lines_count - lines_max_draw);
+	window.scroll_offset = lines_skip;
+	
+	select_start_char = -1;
+	select_start_line = -1;
+	select_end_char = -1;
+	select_end_line = -1;
+	is_select = false;
+	
+	update_text_surf();
+}
 
 add_cursor = function(_line, _char){
 	for(var i = 0; i < array_length(cursors); i++){
@@ -237,7 +348,7 @@ insert_snippet = function(_snippet_text){
 	var _indent = "";
 	for(var i = 1; i <= string_length(_current_line); i++){
 		var _ch = string_char_at(_current_line, i);
-		if (_ch == " " || _ch == "\t"){
+		if (_ch == " "){
 			_indent += _ch;
 		}else{
 			break;
@@ -424,20 +535,128 @@ get_nearest_words = function(_input, _count){
 	return _result;
 }
 
-show_autocomplete = function(){
-	var _line = lines[current_line];
-	var _start = current_char;
+get_nearest_from_list = function(_input, _list, _count) {
+	var _len = array_length(_list);
+	if (_len == 0) return [];
 	
+	var _inp_len = max(string_length(_input), 1);
+	var _input_lower = string_lower(_input);
+	
+	var _weights = array_create(_len, 0);
+	
+	for(var i = 0; i < _len; i++){
+		var _word = _list[i];
+		var _word_lower = string_lower(_word);
+		var _word_len = string_length(_word);
+		
+		var _prefix_match = true;
+		if (_inp_len <= _word_len) {
+			for(var j = 1; j <= _inp_len; j++){
+				if (string_char_at(_input_lower, j) != string_char_at(_word_lower, j)){
+					_prefix_match = false;
+					break;
+				}
+			}
+		}else{
+			_prefix_match = false;
+		}
+		
+		if (_prefix_match) {
+			_weights[i] = 1000 - (_word_len - _inp_len) * 10;
+		}else{
+			var _inp_pos = 1;
+			var _match_count = 0;
+			for(var j = 1; j <= _word_len && _inp_pos <= _inp_len; j++){
+				if (string_char_at(_word_lower, j) == string_char_at(_input_lower, _inp_pos)){
+					_match_count++;
+					_inp_pos++;
+				}
+			}
+			if (_match_count >= _inp_len * 0.6){
+				_weights[i] = _match_count * 10;
+			}
+		}
+	}
+	
+	var _indices = array_create(_len, 0);
+	for (var i = 0; i < _len; i++) _indices[i] = i;
+	
+	for(var i = 0; i < _len - 1; i++){
+		for(var j = 0; j < _len - i - 1; j++){
+			if (_weights[_indices[j]] < _weights[_indices[j + 1]]){
+				var _tmp = _indices[j];
+				_indices[j] = _indices[j + 1];
+				_indices[j + 1] = _tmp;
+			}
+		}
+	}
+	
+	var _result = [];
+	for(var i = 0; i < _len && array_length(_result) < _count; i++){
+		if (_weights[_indices[i]] > 0){
+			array_push(_result, _list[_indices[i]]);
+		}
+	}
+	
+	return _result;
+}
+
+show_autocomplete = function(){
+	autocomplete_suggestions = [];
+	var _line = lines[current_line];
+	var _pos = current_char;
+	var _dot_pos = 0;
+	
+	for(var i = _pos; i >= 1; i--){
+		var _ch = string_char_at(_line, i);
+		if (_ch == ".") {
+			_dot_pos = i;
+			break;
+		}
+		if (_ch == " " || _ch == "(" || _ch == ")" || _ch == "[" || _ch == "]" || 
+			_ch == "{" || _ch == "}" || _ch == "," || _ch == ";" || _ch == ":" || 
+			_ch == "\"" || _ch == "'") {
+			break;
+		}
+	}
+	if (_dot_pos > 0) {
+		var _var_start = _dot_pos - 1;
+		while(_var_start > 0) {
+			var _ch = string_char_at(_line, _var_start);
+			if (!((_ch >= "a" && _ch <= "z") || (_ch >= "A" && _ch <= "Z") || (_ch >= "0" && _ch <= "9") || _ch == "_")) {
+				_var_start++;
+				break;
+			}
+			_var_start--;
+		}
+		if (_var_start < 1) _var_start = 1;
+		var _var_name = string_copy(_line, _var_start, _dot_pos - _var_start);
+		
+		var _text_after = string_copy(_line, _dot_pos + 1, _pos - _dot_pos);
+		var _methods = get_context_methods(_var_name);
+		if (_text_after != "") {
+			_methods = get_nearest_from_list(_text_after, _methods, autocomplete_max);
+		}
+		
+		for(var i = 0; i < array_length(_methods); i++){
+			array_push(autocomplete_suggestions, _methods[i]);
+		}
+		
+		autocomplete_index = 0;
+		autocomplete_popup = array_length(autocomplete_suggestions) > 0;
+		return;
+	}
+	
+	var _start = _pos;
 	while(_start > 0){
 		var _ch = string_char_at(_line, _start);
-		if (!((_ch >= "a" && _ch <= "z") || (_ch >= "A" && _ch <= "Z") || (_ch >= "0" && _ch <= "9") || _ch == "_")){
+		if (!((_ch >= "a" && _ch <= "z") || (_ch >= "A" && _ch <= "Z") || (_ch >= "0" && _ch <= "9") || _ch == "_")) {
 			_start++;
 			break;
 		}
 		_start--;
 	}
-	
-	var _word = string_copy(_line, _start, current_char - _start + 1);
+	var _word = string_copy(_line, _start, _pos - _start + 1);
 	var _word_len = string_length(_word);
 	
 	if (_word_len >= 2){
@@ -445,7 +664,7 @@ show_autocomplete = function(){
 		
 		for(var i = array_length(autocomplete_suggestions) - 1; i >= 0; i--){
 			if (autocomplete_suggestions[i] == _word || 
-				string_length(autocomplete_suggestions[i]) < _word_len){
+				string_length(autocomplete_suggestions[i]) < _word_len) {
 				array_delete(autocomplete_suggestions, i, 1);
 			}
 		}
@@ -462,10 +681,19 @@ show_autocomplete = function(){
 	}
 }
 
+
 apply_autocomplete = function(){
 	if (!autocomplete_popup || array_length(autocomplete_suggestions) == 0) return;
 	
 	var _selected = autocomplete_suggestions[autocomplete_index];
+	
+	if (current_char > 0 && string_char_at(lines[current_line], current_char) == "."){
+		lines[current_line] = string_insert(_selected, lines[current_line], current_char + 1);
+		current_char += string_length(_selected);
+		autocomplete_popup = false;
+		surface_redraw_line();
+		return;
+	}
 	
 	if (string_pos(" (snippet)", _selected) > 0){
 		var _snippet_name = string_replace(_selected, " (snippet)", "");
@@ -702,7 +930,7 @@ surface_redraw_line = function(){
 		draw_rectangle_colour(line_x_start - char_w * 2 - h_scroll_offset, _y, width, _y + char_h + 4, c_black, c_black, c_black, c_black, false);
 		draw_set_font(fo_text_editor);
 		draw_set_halign(fa_right);
-		draw_text(line_x_start - h_scroll_offset, _y, string(current_line) + ": ");
+		draw_text(line_x_start - h_scroll_offset, _y, $"{current_line + 1}: ");
 		draw_set_halign(fa_left);
 		draw_text(line_x_start - h_scroll_offset, _y, lines[current_line]);
 		surface_reset_target();
@@ -733,13 +961,15 @@ update_text_surf = function(){
 	surface_set_target(text_surface);
 	draw_clear_alpha(c_black, 0);
 	draw_set_font(fo_text_editor);
-
+	
+	draw_set_color(c_white);
+	
 	for(var i = 0; i < lines_max_draw; i++){
 		var li = lines_skip + i;
 		if (li >= lines_count) break;
 	
 		draw_set_halign(fa_right);
-		draw_text(line_x_start - h_scroll_offset, i * (char_h + 4), string(li) + ": ");
+		draw_text(line_x_start - h_scroll_offset, i * (char_h + 4), string(li + 1) + ": ");
 	
 		draw_set_halign(fa_left);
 		draw_text(line_x_start - h_scroll_offset, i * (char_h + 4), lines[li]);
@@ -940,6 +1170,53 @@ get_text = function(){
 	}
 	
 	return _r;
+}
+
+detect_var_type = function(_var_name){
+	var _search = string_trim(_var_name);
+	
+	for(var i = current_line; i >= 0; i--){
+		var _line = string_trim(lines[i]);
+		var _decl = "var " + _search;
+		
+		if (string_pos(_decl, _line) == 1){
+			var _rest = string_copy(_line, string_length(_decl) + 1, string_length(_line) - string_length(_decl));
+			_rest = string_trim(_rest);
+			
+			if (_rest == "") continue;
+			
+			var _first = string_char_at(_rest, 1);
+			
+			if (_first == "[") return "array";
+			if (_first == "\"" || _first == "'") return "string";
+			if (_first >= "0" && _first <= "9") return "number";
+		}
+	}
+	
+	return "";
+}
+
+get_context_methods = function(_var_name){
+	var _type = detect_var_type(_var_name);
+	var _methods = [];
+	
+	if (_type == "array"){
+		var _key = ds_map_find_first(global.array_methods);
+		
+		while(!is_undefined(_key)){
+			array_push(_methods, _key + "()");
+			_key = ds_map_find_next(global.array_methods, _key);
+		}
+	}else if (_type == "string"){
+		var _key = ds_map_find_first(global.string_methods);
+		
+		while(!is_undefined(_key)){
+			array_push(_methods, _key + "()");
+			_key = ds_map_find_next(global.string_methods, _key);
+		}
+	}
+	
+	return _methods;
 }
 
 text_surface = surface_create(width, height);

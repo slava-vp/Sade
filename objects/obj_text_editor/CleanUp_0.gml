@@ -32,3 +32,5 @@ on_confirm = undefined;
 on_cancel = undefined;
 
 delete window;
+
+ds_map_destroy(bracket_pairs);

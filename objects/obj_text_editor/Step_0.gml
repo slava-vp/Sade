@@ -1,4 +1,51 @@
 if (editor_mode == EditorMode.full_editor){
+	if (!global.popup_active){
+		if (goto_line_active){
+			var _char = obj_input.last_char;
+			var _key = obj_input.last_key;
+		
+			if (_key == vk_escape){
+				goto_line_active = false;
+				goto_line_number = "";
+				exit;
+			}
+		
+			if (_key == vk_enter){
+				var _line = 0;
+				if (goto_line_number != ""){
+					_line = clamp(real(goto_line_number) - 1, 0, lines_count - 1);
+				}
+				current_line = _line;
+				current_char = 0;
+				prev_char = 0;
+				lines_skip = _line;
+				if (lines_skip > lines_count - lines_max_draw) lines_skip = max(0, lines_count - lines_max_draw);
+				window.scroll_offset = lines_skip;
+				update_text_surf();
+				goto_line_active = false;
+				goto_line_number = "";
+				exit;
+			}
+		
+			if (_key == vk_backspace && string_length(goto_line_number) > 0){
+				goto_line_number = string_copy(goto_line_number, 1, string_length(goto_line_number) - 1);
+				exit;
+			}
+		
+			if (_char >= "0" && _char <= "9"){
+				goto_line_number += _char;
+				exit;
+			}
+		
+			exit;
+		}
+	
+		if (keyboard_check(vk_control) && keyboard_check_pressed(ord("G"))){
+			goto_line_active = true;
+			goto_line_number = "";
+			exit;
+		}
+	}
 	window.update_buttons(mouse_x, mouse_y);
 	
 	if (mouse_check_button_pressed(mb_left)){
@@ -6,6 +53,87 @@ if (editor_mode == EditorMode.full_editor){
 			exit;
 		}
 	}
+	
+	if (keyboard_check_pressed(vk_f11)){
+		toggle_fullscreen();
+		exit;
+	}
+}
+
+if (editor_mode == EditorMode.full_editor && !global.popup_active && !goto_line_active){
+	if (search_active){
+		var _char = obj_input.last_char;
+		var _key = obj_input.last_key;
+		
+		if (_key == vk_escape){
+			search_active = false;
+			search_text = "";
+			search_results = [];
+			search_index = -1;
+			exit;
+		}
+		
+		if (_key == vk_enter){
+			search_active = false;
+			exit;
+		}
+		
+		if (_key == vk_backspace){
+			if (string_length(search_text) > 0){
+				search_text = string_copy(search_text, 1, string_length(search_text) - 1);
+				perform_search();
+				if (array_length(search_results) > 0){
+					search_index = 0;
+					jump_to_search_result();
+				}
+			}
+			exit;
+		}
+		
+		if (_key == vk_up && array_length(search_results) > 0){
+			search_index--;
+			if (search_index < 0) search_index = array_length(search_results) - 1;
+			jump_to_search_result();
+			exit;
+		}
+		
+		if (_key == vk_down && array_length(search_results) > 0){
+			search_index++;
+			if (search_index >= array_length(search_results)) search_index = 0;
+			jump_to_search_result();
+			exit;
+		}
+		
+		if (_char != "" && _key != vk_backspace && _key != vk_enter && _key != vk_escape && _key != vk_tab){
+			search_text += _char;
+			perform_search();
+			if (array_length(search_results) > 0){
+				search_index = 0;
+				jump_to_search_result();
+			}
+			exit;
+		}
+		
+		exit;
+	}
+	
+	if (keyboard_check(vk_control) && keyboard_check_pressed(ord("F"))){
+		search_active = true;
+		search_text = "";
+		search_results = [];
+		search_index = -1;
+		exit;
+	}
+}
+
+if (editor_mode == EditorMode.full_editor && !search_active && keyboard_check_pressed(vk_f3) && search_text != ""){
+	perform_search();
+	if (array_length(search_results) > 0){
+		search_index++;
+		if (search_index >= array_length(search_results)) search_index = 0;
+		jump_to_search_result();
+	}
+	exit;
 }
 
 if (keyboard_check_pressed(vk_escape) && multi_cursor_active){
@@ -83,26 +211,51 @@ if (_char != ""
 && _key != vk_tab
 && !keyboard_check(vk_control)
 ){
-	save_undo_state();
-	
-	if (select_start_char != -1 && select_start_line != -1){
-		delete_selection();
-	}
-	
 	if (multi_cursor_active){
 		multi_cursor_insert(_char);
 	}else{
 		save_undo_state();
+	
 		if (select_start_char != -1 && select_start_line != -1){
 			delete_selection();
 		}
-		lines[current_line] = string_insert(_char, lines[current_line], current_char + 1);
-		current_char++;
+
+		var _next = string_char_at(lines[current_line], current_char + 1);
+
+		if (_char == "(" || _char == "[" || _char == "{" || _char == "\"" || _char == "'"){
+			if (_next == ")" || _next == "]" || _next == "}" || _next == "\"" || _next == "'"){
+				lines[current_line] = string_insert(_char, lines[current_line], current_char + 1);
+				current_char++;
+			}else{
+				lines[current_line] = string_insert(_char, lines[current_line], current_char + 1);
+				current_char++;
+			
+				if (_char == "(") { lines[current_line] = string_insert(")", lines[current_line], current_char + 1); }
+				if (_char == "[") { lines[current_line] = string_insert("]", lines[current_line], current_char + 1); }
+				if (_char == "{") { lines[current_line] = string_insert("}", lines[current_line], current_char + 1); }
+				if (_char == "\"") { lines[current_line] = string_insert("\"", lines[current_line], current_char + 1); }
+				if (_char == "'") { lines[current_line] = string_insert("'", lines[current_line], current_char + 1); }
+			}
+		}else if (_char == ")" || _char == "]" || _char == "}"){
+			if ((_char == ")" && _next == ")") ||
+				(_char == "]" && _next == "]") ||
+				(_char == "}" && _next == "}")){
+				current_char++;
+			}else{
+				lines[current_line] = string_insert(_char, lines[current_line], current_char + 1);
+				current_char++;
+			}
+		}else{
+			lines[current_line] = string_insert(_char, lines[current_line], current_char + 1);
+			current_char++;
+		}
 	}
+	
 	surface_redraw_line();
 	
 	update_autocomplete_dictionary();
 	show_autocomplete();
+	
 }
 
 if (keyboard_check_pressed(vk_tab)){
@@ -314,64 +467,78 @@ if (autocomplete_popup){
 
 if (_key == vk_enter){
 	autocomplete_popup = false;
+	var _char_before = current_char;
+	var _original = lines[current_line];
 	
 	if (select_start_char != -1 && select_start_line != -1){
 		delete_selection();
 	}
 	
+	save_undo_state();
 	surface_redraw_line();
 	
-	if (current_char == string_length(lines[current_line])){
+	if (current_char == string_length(_original)){
 		array_insert(lines, current_line + 1, "");
 	}else{
-		var _part2 = string_copy(lines[current_line], current_char + 1, string_length(lines[current_line]) - current_char);
-		lines[current_line] = string_copy(lines[current_line], 0, current_char);
-		array_insert(lines, current_line + 1, _part2);
-		surface_redraw_line();
+		var _rest = string_copy(_original, current_char + 1, string_length(_original) - current_char);
+		lines[current_line] = string_copy(_original, 1, current_char);
+		array_insert(lines, current_line + 1, _rest);
 	}
 	
 	lines_count = array_length(lines);
 	current_line++;
 	
-	var _prev_line = lines[current_line - 1];
+	var _left = lines[current_line - 1];
 	var _indent = "";
-	for (var i = 1; i <= string_length(_prev_line); i++){
-		var _ch = string_char_at(_prev_line, i);
-		if (_ch == " " || _ch == "    "){
-			_indent += _ch;
-		} else {
-			break;
-		}
+	for(var i = 1; i <= string_length(_left); i++){
+		if (string_char_at(_left, i) == " ") _indent += " ";
+		else break;
+	}
+	
+	if (_char_before < string_length(_indent)){
+		_indent = "";
 	}
 	
 	lines[current_line] = _indent + lines[current_line];
-	current_char = string_length(_indent);
 	
-	var _trimmed = string_trim(_prev_line);
-	if (string_length(_trimmed) > 0 && string_char_at(_trimmed, string_length(_trimmed)) == "{"){
-		lines[current_line] = _indent + "    " + lines[current_line];
-		current_char = string_length(_indent) + 1;
+	var _trim_left = _left;
+	while (string_length(_trim_left) > 0 && string_char_at(_trim_left, 1) == " "){
+		_trim_left = string_copy(_trim_left, 2, string_length(_trim_left) - 1);
 	}
+	while (string_length(_trim_left) > 0 && string_char_at(_trim_left, string_length(_trim_left)) == " "){
+		_trim_left = string_copy(_trim_left, 1, string_length(_trim_left) - 1);
+	}
+	var _left_ends_brace = (string_length(_trim_left) > 0 && string_char_at(_trim_left, string_length(_trim_left)) == "{");
 	
-	var _len = string_length(lines[current_line]);
-	if (prev_char > _len) current_char = _len;
-	else current_char = prev_char;
+	var _right = lines[current_line];
+	var _trim_right = _right;
+	while(string_length(_trim_right) > 0 && string_char_at(_trim_right, 1) == " "){
+		_trim_right = string_copy(_trim_right, 2, string_length(_trim_right) - 1);
+	}
+	var _right_starts_brace = (string_length(_trim_right) > 0 && string_char_at(_trim_right, 1) == "}");
+	
+	if (_left_ends_brace && _right_starts_brace){
+		lines[current_line] = _indent + "    ";
+		array_insert(lines, current_line + 1, _indent + "}");
+		lines_count = array_length(lines);
+		current_char = string_length(_indent) + 4;
+		prev_char = current_char;
+	}else if (_left_ends_brace){
+		lines[current_line] = _indent + "    " + lines[current_line];
+		current_char = string_length(_indent) + 4;
+		prev_char = current_char;
+	}else{
+		current_char = string_length(_indent);
+		prev_char = current_char;
+	}
 	
 	line_col = 1;
-	
-	var _curr = current_line;
-	var _pcurr = max(0, current_line - 1);
-	for(var i = _pcurr; i < lines_count - 1; i++){
-		surface_redraw_line();
-		current_line++;
-	}
-	current_line = _curr;
+	update_text_surf();
 	
 	if (current_line - lines_skip >= lines_max_draw - 1){
 		lines_skip = current_line - lines_max_draw + 2;
 		window.scroll_offset = lines_skip;
 		window.max_scroll = max(0, lines_count - lines_max_draw + 1);
-		update_text_surf();
 	}
 }
 
@@ -419,6 +586,12 @@ if (_key == vk_backspace){
 		}
 	}
 	
+	if (current_char * char_w < h_scroll_offset){
+		h_scroll_offset = max(0, current_char * char_w - char_w * 2);
+		window.h_scroll_offset = h_scroll_offset;
+		update_text_surf();
+	}
+	
 	line_col = 1;
 	
 	if (autocomplete_popup){
@@ -455,7 +628,7 @@ if (_key == vk_delete){
 
 line_col += 0.02;
 
-if (window.handle_scroll(mouse_x, mouse_y)){
+if (!keyboard_check(vk_shift) && window.handle_scroll(mouse_x, mouse_y)){
 	lines_skip = window.scroll_offset;
 	update_text_surf();
 }
